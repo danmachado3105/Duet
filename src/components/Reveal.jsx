@@ -20,7 +20,7 @@ export default function Reveal({ as: Tag = 'div', delay = 0, className = '', chi
           observer.disconnect()
         }
       },
-      { threshold: 0.15 },
+      { threshold: 0.15, rootMargin: '0px 0px -8% 0px' },
     )
 
     observer.observe(el)

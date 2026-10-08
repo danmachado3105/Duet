@@ -1,9 +1,10 @@
-import Navbar from '../components/layout/Navbar.jsx'
-import Footer from '../components/layout/Footer.jsx'
-import Hero from '../components/landing/Hero.jsx'
-import HowItWorks from '../components/landing/HowItWorks.jsx'
-import Compatibility from '../components/landing/Compatibility.jsx'
-import FinalCta from '../components/landing/FinalCta.jsx'
+import Navbar from '../components/Navbar.jsx'
+import Footer from '../components/Footer.jsx'
+import Hero from '../sections/Hero.jsx'
+import Impasse from '../sections/Impasse.jsx'
+import HowItWorks from '../sections/HowItWorks.jsx'
+import Difference from '../sections/Difference.jsx'
+import FinalCta from '../sections/FinalCta.jsx'
 
 export default function LandingPage() {
   return (
@@ -14,8 +15,9 @@ export default function LandingPage() {
       <Navbar />
       <main id="conteudo">
         <Hero />
+        <Impasse />
         <HowItWorks />
-        <Compatibility />
+        <Difference />
         <FinalCta />
       </main>
       <Footer />
