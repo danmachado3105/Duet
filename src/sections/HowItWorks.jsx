@@ -1,4 +1,5 @@
 import Reveal from '../components/Reveal.jsx'
+import FlowStrip from '../components/FlowStrip.jsx'
 import StepVisual from '../components/StepVisual.jsx'
 import { steps } from '../data/steps.js'
 
@@ -6,22 +7,30 @@ export default function HowItWorks() {
   return (
     <section id="como-funciona" className="section how">
       <div className="container">
-        <Reveal className="section-head">
-          <span className="eyebrow">Como funciona</span>
-          <h2 className="section-title">Do “tanto faz” ao match em quatro passos.</h2>
-        </Reveal>
+        <div className="how__head">
+          <Reveal>
+            <span className="eyebrow">Como funciona</span>
+            <h2 className="section-title">
+              Dois filmes entram.
+              <br />
+              Uma escolha sai.
+            </h2>
+          </Reveal>
+          <Reveal delay={120}>
+            <FlowStrip />
+          </Reveal>
+        </div>
 
-        <ol className="steps">
+        <ol className="rail">
           {steps.map((step, i) => (
-            <Reveal as="li" key={step.id} delay={i * 100} className="step">
-              <div className="step__visual">
+            <Reveal as="li" key={step.id} delay={i * 120} className="rail__step">
+              <span className="rail__node" aria-hidden="true" />
+              <div className="rail__visual">
                 <StepVisual type={step.visual} />
               </div>
-              <div className="step__body">
-                <span className="step__number">{step.number}</span>
-                <h3 className="step__title">{step.title}</h3>
-                <p className="step__text">{step.text}</p>
-              </div>
+              <span className="rail__number">{step.number}</span>
+              <h3 className="rail__title">{step.title}</h3>
+              <p className="rail__text">{step.text}</p>
             </Reveal>
           ))}
         </ol>

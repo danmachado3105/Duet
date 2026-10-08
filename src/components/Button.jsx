@@ -1,5 +1,6 @@
+// Com `href` vira link (<a>). Sem `href` vira botão (<button>), útil para abrir a janela mockada.
 export default function Button({
-  href = '#',
+  href,
   variant = 'primary',
   size = 'md',
   arrow = false,
@@ -9,8 +10,8 @@ export default function Button({
 }) {
   const classes = ['btn', `btn--${variant}`, `btn--${size}`, className].filter(Boolean).join(' ')
 
-  return (
-    <a href={href} className={classes} {...rest}>
+  const content = (
+    <>
       <span>{children}</span>
       {arrow && (
         <svg
@@ -28,6 +29,20 @@ export default function Button({
           <path d="M5 12h14M13 6l6 6-6 6" />
         </svg>
       )}
-    </a>
+    </>
+  )
+
+  if (href) {
+    return (
+      <a href={href} className={classes} {...rest}>
+        {content}
+      </a>
+    )
+  }
+
+  return (
+    <button type="button" className={classes} {...rest}>
+      {content}
+    </button>
   )
 }

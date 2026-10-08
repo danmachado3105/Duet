@@ -52,7 +52,7 @@
   --display-lg: clamp(2.5rem, 4.6vw, 4.25rem);
 }
 
-/* Seções claras reaproveitam os mesmos tokens */
+/* Seção clara: reaproveita os mesmos tokens */
 .theme-paper {
   --bg: var(--paper);
   --surface: var(--paper-dim);
@@ -64,6 +64,14 @@
   --accent: var(--coral-600);
   background: var(--bg);
   color: var(--text);
+}
+
+/* Seção escura um degrau acima do fundo */
+.theme-raised {
+  --bg: var(--ink-900);
+  --surface: var(--ink-800);
+  --surface-2: #26221f;
+  background: var(--bg);
 }
 
 *,
@@ -104,6 +112,7 @@ h3,
 p,
 ul,
 ol,
+dl,
 figure {
   margin: 0;
 }
@@ -191,6 +200,18 @@ button {
   color: var(--text-2);
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .skip-link {
   position: absolute;
   top: -4rem;
@@ -212,6 +233,13 @@ button {
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
 }
 

@@ -1,26 +1,21 @@
 import Poster from './Poster.jsx'
 import VennMark from './VennMark.jsx'
-import { movies, ranking } from '../data/movies.js'
+import { movies, sessionMock } from '../data/movies.js'
 
 export default function StepVisual({ type }) {
   switch (type) {
     case 'picks':
       return (
-        <div className="sv sv--picks">
-          <div className="sv__item">
-            <Poster movie={movies.interstellar} size="sm" />
-            <span className="sv__caption">Marina</span>
-          </div>
-          <div className="sv__item">
-            <Poster movie={movies.corra} size="sm" />
-            <span className="sv__caption">Caio</span>
-          </div>
+        <div className="sv">
+          <Poster movie={movies.interstellar} size="sm" />
+          <span className="sv__plus">+</span>
+          <Poster movie={movies.corra} size="sm" />
         </div>
       )
 
     case 'overlap':
       return (
-        <div className="sv sv--overlap">
+        <div className="sv">
           <VennMark className="sv__venn" />
         </div>
       )
@@ -28,12 +23,12 @@ export default function StepVisual({ type }) {
     case 'ranking':
       return (
         <ul className="sv sv--ranking">
-          {ranking.map((item) => (
-            <li key={item.title}>
-              <span>{item.title}</span>
+          {sessionMock.recommendations.map((item, i) => (
+            <li key={item.movie.id} style={{ '--w': `${item.score}%`, '--i': i }}>
+              <span>{item.movie.title}</span>
               <b>{item.score}%</b>
               <span className="sv__bar">
-                <i style={{ '--w': `${item.score}%` }} />
+                <i />
               </span>
             </li>
           ))}

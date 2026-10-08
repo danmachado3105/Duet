@@ -1,18 +1,30 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Logo from './Logo.jsx'
 import Button from './Button.jsx'
 import { navLinks } from '../data/navigation.js'
+import { useSessionDialog } from '../context/sessionDialogContext.js'
 
 export default function Navbar() {
+  const { openDialog } = useSessionDialog()
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const progressRef = useRef(null)
   const close = () => setOpen(false)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8)
+    const onScroll = () => {
+      setScrolled(window.scrollY > 8)
+      const max = document.documentElement.scrollHeight - window.innerHeight
+      const progress = max > 0 ? Math.min(window.scrollY / max, 1) : 0
+      progressRef.current?.style.setProperty('--progress', progress.toFixed(3))
+    }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
   }, [])
 
   useEffect(() => {
@@ -37,6 +49,11 @@ export default function Navbar() {
     return () => mediaQuery.removeEventListener('change', onChange)
   }, [])
 
+  const openFromMenu = (mode) => {
+    close()
+    openDialog(mode)
+  }
+
   return (
     <header className={`navbar ${scrolled || open ? 'navbar--solid' : ''}`}>
       <div className="container navbar__inner">
@@ -53,10 +70,10 @@ export default function Navbar() {
         </nav>
 
         <div className="navbar__actions">
-          <a href="#" className="navbar__login">
+          <button type="button" className="navbar__login" onClick={() => openDialog('join')}>
             Entrar
-          </a>
-          <Button href="#" size="sm">
+          </button>
+          <Button size="sm" onClick={() => openDialog('create')}>
             Começar
           </Button>
         </div>
@@ -74,9 +91,11 @@ export default function Navbar() {
         </button>
       </div>
 
+      <span className="navbar__progress" ref={progressRef} aria-hidden="true" />
+
       <div id="menu-mobile" className="menu" hidden={!open}>
         <ul className="menu__links">
-          {[...navLinks, { label: 'Entrar', href: '#' }].map((link) => (
+          {navLinks.map((link) => (
             <li key={link.label}>
               <a href={link.href} onClick={close}>
                 {link.label}
@@ -85,10 +104,10 @@ export default function Navbar() {
           ))}
         </ul>
         <div className="menu__actions">
-          <Button href="#" size="lg" arrow onClick={close}>
+          <Button size="lg" arrow onClick={() => openFromMenu('create')}>
             Começar uma sessão
           </Button>
-          <Button href="#" variant="ghost" size="lg" onClick={close}>
+          <Button variant="ghost" size="lg" onClick={() => openFromMenu('join')}>
             Entrar com código
           </Button>
         </div>
