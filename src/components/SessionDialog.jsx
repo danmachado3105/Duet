@@ -1,34 +1,11 @@
 import { useEffect, useId, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import Button from './Button.jsx'
+import { ROUTES } from '../utils/sessionFlow.js'
 
-function CreateView({ titleId, onClose, onSwitch }) {
-  return (
-    <>
-      <h2 id={titleId} className="dialog__title">
-        Criar uma sessão
-      </h2>
-      <p className="dialog__text">
-        Em breve, cada sessão terá um código para você compartilhar com a outra pessoa. Esta é uma
-        prévia da tela.
-      </p>
-      <div className="code">
-        <span className="code__label">Código de exemplo</span>
-        <strong>K7P-2X</strong>
-      </div>
-      <p className="dialog__note">A criação de sessões ainda está em desenvolvimento.</p>
-      <div className="dialog__actions">
-        <Button size="lg" onClick={onClose}>
-          Entendi
-        </Button>
-        <button type="button" className="linklike" onClick={() => onSwitch('join')}>
-          Já tenho um código
-        </button>
-      </div>
-    </>
-  )
-}
-
-function JoinView({ titleId, onSwitch }) {
+// "Entrar com código" continua mockado: sessões entre dispositivos virão com o backend.
+// Criar sessão agora é uma rota real (/sessao/nova).
+function JoinView({ titleId, onClose }) {
   const inputId = useId()
   const [code, setCode] = useState('')
   const [submitted, setSubmitted] = useState(false)
@@ -67,16 +44,18 @@ function JoinView({ titleId, onSwitch }) {
         </Button>
       </form>
       <p className="dialog__note" role="status">
-        {submitted ? 'Entrar em sessões ainda está em desenvolvimento. Esta é uma prévia da tela.' : ''}
+        {submitted
+          ? 'Entrar em sessões de outros dispositivos ainda está em desenvolvimento.'
+          : ''}
       </p>
-      <button type="button" className="linklike" onClick={() => onSwitch('create')}>
-        Quero criar uma sessão
-      </button>
+      <Link to={ROUTES.newSession} className="linklike" onClick={onClose}>
+        Quero começar uma sessão neste dispositivo
+      </Link>
     </>
   )
 }
 
-export default function SessionDialog({ open, mode, onClose, onSwitch }) {
+export default function SessionDialog({ open, onClose }) {
   const ref = useRef(null)
   const titleId = useId()
 
@@ -110,11 +89,7 @@ export default function SessionDialog({ open, mode, onClose, onSwitch }) {
           <button type="button" className="dialog__close" aria-label="Fechar" onClick={onClose}>
             <span aria-hidden="true">×</span>
           </button>
-          {mode === 'create' ? (
-            <CreateView titleId={titleId} onClose={onClose} onSwitch={onSwitch} />
-          ) : (
-            <JoinView titleId={titleId} onSwitch={onSwitch} />
-          )}
+          <JoinView titleId={titleId} onClose={onClose} />
         </div>
       )}
     </dialog>

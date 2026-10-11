@@ -1,10 +1,9 @@
+import { Link } from 'react-router-dom'
 import Logo from './Logo.jsx'
 import { navLinks } from '../data/navigation.js'
-import { useSessionDialog } from '../context/sessionDialogContext.js'
+import { ROUTES } from '../utils/sessionFlow.js'
 
 export default function Footer() {
-  const { openDialog } = useSessionDialog()
-
   return (
     <footer className="footer">
       <div className="container">
@@ -22,9 +21,7 @@ export default function Footer() {
                 </li>
               ))}
               <li>
-                <button type="button" className="footer__link" onClick={() => openDialog('create')}>
-                  Começar
-                </button>
+                <Link to={ROUTES.newSession}>Começar</Link>
               </li>
             </ul>
           </nav>

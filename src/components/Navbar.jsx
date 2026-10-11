@@ -3,6 +3,7 @@ import Logo from './Logo.jsx'
 import Button from './Button.jsx'
 import { navLinks } from '../data/navigation.js'
 import { useSessionDialog } from '../context/sessionDialogContext.js'
+import { ROUTES } from '../utils/sessionFlow.js'
 
 export default function Navbar() {
   const { openDialog } = useSessionDialog()
@@ -49,9 +50,9 @@ export default function Navbar() {
     return () => mediaQuery.removeEventListener('change', onChange)
   }, [])
 
-  const openFromMenu = (mode) => {
+  const openJoinFromMenu = () => {
     close()
-    openDialog(mode)
+    openDialog('join')
   }
 
   return (
@@ -73,7 +74,7 @@ export default function Navbar() {
           <button type="button" className="navbar__login" onClick={() => openDialog('join')}>
             Entrar
           </button>
-          <Button size="sm" onClick={() => openDialog('create')}>
+          <Button size="sm" to={ROUTES.newSession}>
             Começar
           </Button>
         </div>
@@ -104,10 +105,10 @@ export default function Navbar() {
           ))}
         </ul>
         <div className="menu__actions">
-          <Button size="lg" arrow onClick={() => openFromMenu('create')}>
+          <Button size="lg" arrow to={ROUTES.newSession} onClick={close}>
             Começar uma sessão
           </Button>
-          <Button variant="ghost" size="lg" onClick={() => openFromMenu('join')}>
+          <Button variant="ghost" size="lg" onClick={openJoinFromMenu}>
             Entrar com código
           </Button>
         </div>

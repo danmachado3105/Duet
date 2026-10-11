@@ -1,5 +1,8 @@
-// Com `href` vira link (<a>). Sem `href` vira botão (<button>), útil para abrir a janela mockada.
+import { Link } from 'react-router-dom'
+
+// `to` = navegação interna · `href` = link comum (âncora) · sem nenhum dos dois = <button>
 export default function Button({
+  to,
   href,
   variant = 'primary',
   size = 'md',
@@ -31,6 +34,14 @@ export default function Button({
       )}
     </>
   )
+
+  if (to) {
+    return (
+      <Link to={to} className={classes} {...rest}>
+        {content}
+      </Link>
+    )
+  }
 
   if (href) {
     return (
