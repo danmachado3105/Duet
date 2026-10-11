@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Button from './Button.jsx'
 import { ROUTES } from '../utils/sessionFlow.js'
+import { useBackdropClose } from '../hooks/useBackdropClose.js'
 
 // "Entrar com código" continua mockado: sessões entre dispositivos virão com o backend.
 // Criar sessão agora é uma rota real (/sessao/nova).
@@ -58,6 +59,8 @@ function JoinView({ titleId, onClose }) {
 export default function SessionDialog({ open, onClose }) {
   const ref = useRef(null)
   const titleId = useId()
+  const backdrop = useBackdropClose(onClose)
+
 
   useEffect(() => {
     const dialog = ref.current
@@ -80,9 +83,7 @@ export default function SessionDialog({ open, onClose }) {
       className="dialog"
       aria-labelledby={titleId}
       onClose={onClose}
-      onClick={(event) => {
-        if (event.target === event.currentTarget) onClose()
-      }}
+      {...backdrop}
     >
       {open && (
         <div className="dialog__panel">
