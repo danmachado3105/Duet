@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import Button from '../components/Button.jsx'
 import Poster from '../components/Poster.jsx'
 import MovieSearch from '../components/MovieSearch.jsx'
 import MovieFilters from '../components/MovieFilters.jsx'
+import ResultsBar from '../components/ResultsBar.jsx'
 import MovieGrid from '../components/MovieGrid.jsx'
 import MovieDetails from '../components/MovieDetails.jsx'
 import { catalog } from '../data/catalog.js'
@@ -35,9 +36,14 @@ const COPY = {
 
 export default function PickMoviePage({ person }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const { session, selectMovie } = useSession()
   const copy = COPY[person]
 
+  // Se a pessoa veio da análise para trocar a escolha, volta para ela ao salvar
+  const returnTo = location.state?.returnTo === ROUTES.analysis ? ROUTES.analysis : null
+
+  // `pending` = seleção temporária no catálogo. A escolha confirmada só entra na sessão em `confirm`.
   const [pending, setPending] = useState(session[personKey(person)].selectedMovie)
   const [detail, setDetail] = useState(null)
   const filters = useCatalogFilters(catalog)
@@ -48,63 +54,85 @@ export default function PickMoviePage({ person }) {
   }
 
   const confirm = () => {
+    if (!pending) return
     selectMovie(person, pending)
     // replace: o botão "voltar" não leva de volta à tela de escolha
-    navigate(copy.next, { replace: true })
+    navigate(returnTo ?? copy.next, { replace: true })
   }
 
   return (
-    <div className="container pick" data-person={person}>
-      <header className="pick__head stagger">
-        <span className="pick__who">
-          <span className="dot" data-tone={copy.tone} aria-hidden="true" />
-          {copy.who}
-        </span>
-        <h1 className="pick__title">{copy.title}</h1>
-        <p className="pick__sub">{copy.sub}</p>
-        <p className="pick__hint">{copy.hint}</p>
-      </header>
+    <div className="pick" data-person={person}>
+      <div className="container pick__content">
+        <header className="pick__head stagger">
+          <span className="pick__who">
+            <span className="dot" data-tone={copy.tone} aria-hidden="true" />
+            {copy.who}
+          </span>
+          <h1 className="pick__title">{copy.title}</h1>
+          <p className="pick__sub">{copy.sub}</p>
+          <p className="pick__hint">{copy.hint}</p>
+        </header>
 
-      <div className="tools">
-        <MovieSearch value={filters.query} onChange={filters.setQuery} />
-        <MovieFilters
-          type={filters.type}
-          onTypeChange={filters.setType}
-          genres={filters.genres}
-          genre={filters.genre}
-          onGenreChange={filters.setGenre}
+        <div className="tools">
+          <MovieSearch value={filters.query} onChange={filters.setQuery} />
+          <MovieFilters
+            type={filters.type}
+            onTypeChange={filters.setType}
+            genres={filters.genres}
+            genre={filters.genre}
+            onGenreChange={filters.setGenre}
+          />
+        </div>
+
+        <ResultsBar
+          count={filters.results.length}
+          sort={filters.sort}
+          onSortChange={filters.setSort}
+          hasFilters={filters.hasFilters}
+          onClear={filters.clear}
+        />
+
+        <MovieGrid
+          items={filters.results}
+          selectedId={pending?.id}
+          onOpen={setDetail}
+          onClear={filters.clear}
+          hasFilters={filters.hasFilters}
+          query={filters.query}
         />
       </div>
 
-      <MovieGrid
-        items={filters.results}
-        selectedId={pending?.id}
-        onOpen={setDetail}
-        onClear={filters.clear}
-        hasFilters={filters.hasFilters}
-      />
-
-      {pending && (
-        <div className="pick__bar">
-          <div className="pick__bar-inner">
-            <div className="chosen">
-              <Poster movie={pending} size="mini" />
+      <div className="pick__bar">
+        <div className="container pick__bar-inner">
+          <div className="chosen" aria-live="polite">
+            {pending ? (
+              <>
+                <Poster movie={pending} size="mini" />
+                <div className="chosen__text">
+                  <span className="chosen__label">{copy.who} · sua escolha</span>
+                  <span className="chosen__title">{pending.title}</span>
+                </div>
+              </>
+            ) : (
               <div className="chosen__text">
-                <span className="chosen__label">Sua escolha</span>
-                <span className="chosen__title">{pending.title}</span>
+                <span className="chosen__label">{copy.who}</span>
+                <span className="chosen__empty">Selecione um título para continuar</span>
               </div>
-            </div>
-            <div className="pick__bar-actions">
+            )}
+          </div>
+
+          <div className="pick__bar-actions">
+            {pending && (
               <Button variant="ghost" onClick={() => setPending(null)}>
                 Trocar
               </Button>
-              <Button size="lg" arrow onClick={confirm}>
-                {copy.cta}
-              </Button>
-            </div>
+            )}
+            <Button size="lg" arrow disabled={!pending} onClick={confirm}>
+              {returnTo ? 'Salvar escolha' : copy.cta}
+            </Button>
           </div>
         </div>
-      )}
+      </div>
 
       <MovieDetails
         movie={detail}

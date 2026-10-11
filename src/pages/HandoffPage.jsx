@@ -10,9 +10,14 @@ export default function HandoffPage() {
       title="Boa escolha."
       text="Agora é a vez da outra pessoa."
       actions={
-        <Button to={ROUTES.person2} size="lg" arrow>
-          Passar para Pessoa 2
-        </Button>
+        <>
+          <Button to={ROUTES.person2} size="lg" arrow>
+            Passar para Pessoa 2
+          </Button>
+          <Button to={ROUTES.person1} variant="ghost" size="lg">
+            Alterar minha escolha
+          </Button>
+        </>
       }
     >
       <p className="registered">
