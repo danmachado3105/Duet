@@ -2,13 +2,16 @@ import { useEffect, useId, useRef } from 'react'
 import Button from './Button.jsx'
 import Poster from './Poster.jsx'
 import { CheckIcon, CloseIcon, StarIcon } from './Icons.jsx'
-import { formatDuration } from '../utils/catalog.js'
+import { catalogMeta } from '../data/catalog.js'
+import { formatCertification, formatMinutes } from '../utils/catalog.js'
+import { useBackdropClose } from '../hooks/useBackdropClose.js'
 
 // Painel de detalhes: janela central no desktop, "bottom sheet" no celular.
-// Usa o <dialog> nativo (Esc, foco preso e backdrop já vêm prontos).
+// Usa o <dialog> nativo (Esc, foco preso no painel e backdrop já vêm prontos).
 export default function MovieDetails({ movie, selected, onClose, onChoose }) {
   const ref = useRef(null)
   const titleId = useId()
+  const backdrop = useBackdropClose(onClose)
 
   useEffect(() => {
     const dialog = ref.current
@@ -25,15 +28,23 @@ export default function MovieDetails({ movie, selected, onClose, onChoose }) {
     }
   }, [movie])
 
+  const isSeries = movie?.type === 'Série'
+  const certification = movie ? formatCertification(movie.certification) : null
+  const runtime = movie
+    ? isSeries
+      ? movie.seasons
+        ? String(movie.seasons)
+        : null
+      : formatMinutes(movie.duration)
+    : null
+
   return (
     <dialog
       ref={ref}
       className="dialog details"
       aria-labelledby={titleId}
       onClose={onClose}
-      onClick={(event) => {
-        if (event.target === event.currentTarget) onClose()
-      }}
+      {...backdrop}
     >
       {movie && (
         <div className="details__panel">
@@ -56,9 +67,9 @@ export default function MovieDetails({ movie, selected, onClose, onChoose }) {
             <p className="details__meta">
               <span>
                 <StarIcon />
+                <span className="sr-only">Nota </span>
                 {movie.rating.toFixed(1)}
               </span>
-              <span>{formatDuration(movie)}</span>
             </p>
 
             <ul className="chips">
@@ -69,7 +80,32 @@ export default function MovieDetails({ movie, selected, onClose, onChoose }) {
               ))}
             </ul>
 
-            <p className="details__desc">{movie.description}</p>
+            <dl className="facts">
+              {runtime && (
+                <div>
+                  <dt>{isSeries ? 'Temporadas' : 'Duração'}</dt>
+                  <dd>{runtime}</dd>
+                </div>
+              )}
+              {certification && (
+                <div>
+                  <dt>Classificação</dt>
+                  <dd>{certification}</dd>
+                </div>
+              )}
+              {movie.language && (
+                <div>
+                  <dt>Idioma original</dt>
+                  <dd>{movie.language}</dd>
+                </div>
+              )}
+            </dl>
+
+            <p className="details__desc">{movie.synopsis}</p>
+
+            {movie.keywords.length > 0 && (
+              <p className="details__themes">Temas: {movie.keywords.join(', ')}</p>
+            )}
 
             <div className="details__actions">
               {selected ? (
@@ -87,6 +123,8 @@ export default function MovieDetails({ movie, selected, onClose, onChoose }) {
                 </>
               )}
             </div>
+
+            {!catalogMeta.officialData && <p className="details__demo">{catalogMeta.note}</p>}
           </div>
         </div>
       )}

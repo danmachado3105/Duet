@@ -1,6 +1,8 @@
 import MovieCard from './MovieCard.jsx'
 
-export default function MovieGrid({ items, selectedId, onOpen, onClear, hasFilters }) {
+export default function MovieGrid({ items, selectedId, onOpen, onClear, hasFilters, query }) {
+  const term = query.trim()
+
   return (
     <>
       <p className="sr-only" aria-live="polite">
@@ -10,7 +12,11 @@ export default function MovieGrid({ items, selectedId, onOpen, onClear, hasFilte
       {items.length === 0 ? (
         <div className="empty">
           <h2>Nada por aqui.</h2>
-          <p>Nenhum título combina com essa busca.</p>
+          <p>
+            {term
+              ? `Nenhum título encontrado para “${term}”.`
+              : 'Nenhum título combina com esses filtros.'}
+          </p>
           {hasFilters && (
             <button type="button" className="linklike" onClick={onClear}>
               Limpar busca e filtros

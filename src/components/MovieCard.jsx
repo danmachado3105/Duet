@@ -8,7 +8,7 @@ export default function MovieCard({ movie, selected, onOpen }) {
         type="button"
         className="mcard__btn"
         aria-haspopup="dialog"
-        aria-label={`${movie.title}, ${movie.year}. Ver detalhes${selected ? '. Selecionado' : ''}`}
+        aria-label={`${movie.title}, ${movie.type}, ${movie.year}. Ver detalhes${selected ? '. Selecionado' : ''}`}
         onClick={() => onOpen(movie)}
       >
         <span className="mcard__art">
@@ -27,6 +27,7 @@ export default function MovieCard({ movie, selected, onOpen }) {
               {movie.rating.toFixed(1)}
             </span>
           </span>
+          <span className="mcard__genres">{movie.genres.slice(0, 2).join(' · ')}</span>
         </span>
       </button>
     </li>
