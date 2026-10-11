@@ -409,7 +409,9 @@ a.linklike {
   --person: var(--accent-solid);
   --on-person: var(--paper);
   --person-text: var(--accent);
-  padding-block: clamp(var(--space-8), 5vw, var(--space-16));
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 
 /* A Pessoa 2 usa o tom claro, para ficar evidente que mudou de pessoa */
@@ -417,6 +419,11 @@ a.linklike {
   --person: var(--paper);
   --on-person: var(--ink-950);
   --person-text: var(--paper);
+}
+
+.pick__content {
+  flex: 1;
+  padding-block: clamp(var(--space-8), 5vw, var(--space-16));
 }
 
 .pick__head {
@@ -458,8 +465,9 @@ a.linklike {
 
 .tools {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-6);
 }
 
 /* Busca */
@@ -525,6 +533,7 @@ a.linklike {
 /* Filtros */
 .filters {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
 }
 
@@ -599,7 +608,7 @@ a.linklike {
 
 @media (min-width: 900px) {
   .filters {
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
     gap: var(--space-6);
   }
@@ -610,6 +619,55 @@ a.linklike {
     padding: 0;
     overflow: visible;
   }
+}
+
+/* Contagem, ordenação e limpar filtros */
+.results {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.results__count {
+  font-size: 0.9rem;
+  color: var(--text-2);
+}
+
+.results__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+.select {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+
+.select select {
+  min-height: 44px;
+  padding: 0 40px 0 var(--space-4);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface)
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a99f94' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>")
+    no-repeat right 14px center;
+  color: var(--text);
+  font: 500 0.9rem var(--font-body);
+  cursor: pointer;
+  appearance: none;
+}
+
+.select option {
+  background: var(--ink-900);
+  color: var(--paper);
 }
 
 /* Grade de títulos */
@@ -718,6 +776,7 @@ a.linklike {
   font-family: var(--font-display);
   font-size: 1.25rem;
   line-height: 1.15;
+  overflow-wrap: anywhere;
   transition: color 0.25s var(--ease);
 }
 
@@ -744,6 +803,13 @@ a.linklike {
   color: var(--accent);
 }
 
+.mcard__genres {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: var(--text-2);
+}
+
 .empty {
   display: grid;
   justify-items: center;
@@ -758,18 +824,19 @@ a.linklike {
   color: var(--text);
 }
 
-/* Barra inferior com a escolha atual */
+.empty p {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+/* Barra inferior: sempre visível, mostra a escolha atual */
 .pick__bar {
   position: sticky;
   bottom: 0;
   z-index: 20;
-  margin-top: var(--space-8);
-  padding-block: var(--space-4);
+  padding: var(--space-4) 0 max(var(--space-4), env(safe-area-inset-bottom));
   border-top: 1px solid var(--line-strong);
   background: rgba(12, 11, 10, 0.96);
-  box-shadow: 0 0 0 100vmax rgba(12, 11, 10, 0.96);
-  clip-path: inset(0 -100vmax);
-  animation: rise 0.4s var(--ease);
 }
 
 .pick__bar-inner {
@@ -783,6 +850,12 @@ a.linklike {
   align-items: center;
   gap: var(--space-3);
   min-width: 0;
+  min-height: 60px;
+}
+
+.chosen .poster {
+  width: 40px;
+  flex-shrink: 0;
 }
 
 .chosen__text {
@@ -808,10 +881,21 @@ a.linklike {
   white-space: nowrap;
 }
 
+.chosen__empty {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--text-2);
+}
+
 .pick__bar-actions {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: var(--space-2);
+}
+
+.pick__bar-actions .btn:only-child {
+  grid-column: 1 / -1;
 }
 
 @media (min-width: 720px) {
@@ -824,6 +908,17 @@ a.linklike {
     align-items: center;
     gap: var(--space-3);
   }
+}
+
+/* Botões desabilitados */
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn--primary:disabled:hover {
+  background: var(--accent-solid);
 }
 
 /* ---------- Detalhes do título ---------- */
@@ -845,6 +940,7 @@ a.linklike {
 
 .details__title {
   margin-block: var(--space-2) var(--space-3);
+  padding-right: var(--space-8);
   font-size: clamp(2.25rem, 5vw, 3.25rem);
   line-height: 1;
 }
@@ -869,14 +965,46 @@ a.linklike {
   color: var(--accent);
 }
 
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-8);
+  margin: var(--space-4) 0 0;
+}
+
+.facts dt {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.facts dd {
+  margin: 0;
+  font-weight: 600;
+}
+
 .details__desc {
-  margin-block: var(--space-4) var(--space-6);
+  margin-top: var(--space-4);
+  color: var(--text-2);
+}
+
+.details__themes {
+  margin-top: var(--space-3);
+  font-size: 0.85rem;
   color: var(--text-2);
 }
 
 .details__actions {
   display: grid;
   gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.details__demo {
+  margin-top: var(--space-4);
+  font-size: 0.75rem;
+  color: var(--text-2);
 }
 
 @media (min-width: 640px) {
@@ -911,4 +1039,45 @@ a.linklike {
   .details__actions .btn {
     width: 100%;
   }
+}
+
+/* ---------- Análise: trocar escolha e pontos em comum ---------- */
+.pair__edit {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  font-size: 0.8rem;
+  color: var(--text-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s var(--ease);
+}
+
+.pair__edit:hover {
+  color: var(--text);
+}
+
+.common {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  max-width: 34rem;
+  animation: rise 0.5s var(--ease);
+}
+
+.common__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.common p {
+  color: var(--text-2);
+}
+
+.common .chips {
+  justify-content: center;
 }
