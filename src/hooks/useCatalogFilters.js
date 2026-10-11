@@ -1,18 +1,21 @@
 import { useMemo, useState } from 'react'
-import { filterCatalog, topGenres } from '../utils/catalog.js'
+import { DEFAULT_SORT, listGenres, queryCatalog } from '../utils/catalog.js'
 
-// Ponto de troca futuro: quando o catálogo vier da API, o `catalog` passado aqui
+// Ponto de troca futuro: quando o catálogo vier da API, o `catalog` recebido aqui
 // pode vir de um hook de busca, sem mudar nenhum componente de interface.
 export function useCatalogFilters(catalog) {
   const [query, setQuery] = useState('')
   const [type, setType] = useState('all') // 'all' | 'movie' | 'series'
   const [genre, setGenre] = useState(null)
+  const [sort, setSort] = useState(DEFAULT_SORT)
 
   const results = useMemo(
-    () => filterCatalog(catalog, { query, type, genre }),
-    [catalog, query, type, genre],
+    () => queryCatalog(catalog, { query, type, genre, sort }),
+    [catalog, query, type, genre, sort],
   )
-  const genres = useMemo(() => topGenres(catalog, 8), [catalog])
+  const genres = useMemo(() => listGenres(catalog), [catalog])
+
+  // A ordenação não conta como filtro: "limpar" não mexe nela
   const hasFilters = query.trim() !== '' || type !== 'all' || genre !== null
 
   const clear = () => {
@@ -21,5 +24,18 @@ export function useCatalogFilters(catalog) {
     setGenre(null)
   }
 
-  return { query, setQuery, type, setType, genre, setGenre, genres, results, hasFilters, clear }
+  return {
+    query,
+    setQuery,
+    type,
+    setType,
+    genre,
+    setGenre,
+    sort,
+    setSort,
+    genres,
+    results,
+    hasFilters,
+    clear,
+  }
 }
