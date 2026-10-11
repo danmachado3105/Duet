@@ -1,17 +1,15 @@
 import Button from '../components/Button.jsx'
 import Reveal from '../components/Reveal.jsx'
-import { useSessionDialog } from '../context/sessionDialogContext.js'
+import { ROUTES } from '../utils/sessionFlow.js'
 
 export default function FinalCta() {
-  const { openDialog } = useSessionDialog()
-
   return (
     <section className="final">
       <div className="container final__grid">
         <Reveal>
           <h2 className="final__title">Prontos para parar de procurar?</h2>
           <p className="final__text">Dois gostos. Uma escolha.</p>
-          <Button variant="paper" size="lg" arrow onClick={() => openDialog('create')}>
+          <Button variant="paper" size="lg" arrow to={ROUTES.newSession}>
             Começar uma sessão
           </Button>
         </Reveal>
