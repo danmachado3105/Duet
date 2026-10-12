@@ -1,14 +1,13 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Button from '../components/Button.jsx'
-import Poster from '../components/Poster.jsx'
+import PosterImage from '../components/PosterImage.jsx'
 import MovieSearch from '../components/MovieSearch.jsx'
 import MovieFilters from '../components/MovieFilters.jsx'
 import ResultsBar from '../components/ResultsBar.jsx'
 import MovieGrid from '../components/MovieGrid.jsx'
 import MovieDetails from '../components/MovieDetails.jsx'
-import { catalog } from '../data/catalog.js'
-import { useCatalogFilters } from '../hooks/useCatalogFilters.js'
+import { useCatalog } from '../hooks/useCatalog.js'
 import { useSession } from '../context/sessionContext.js'
 import { personKey } from '../utils/sessionState.js'
 import { ROUTES } from '../utils/sessionFlow.js'
@@ -46,7 +45,7 @@ export default function PickMoviePage({ person }) {
   // `pending` = seleção temporária no catálogo. A escolha confirmada só entra na sessão em `confirm`.
   const [pending, setPending] = useState(session[personKey(person)].selectedMovie)
   const [detail, setDetail] = useState(null)
-  const filters = useCatalogFilters(catalog)
+  const catalog = useCatalog()
 
   const choose = (movie) => {
     setPending(movie)
@@ -73,33 +72,44 @@ export default function PickMoviePage({ person }) {
           <p className="pick__hint">{copy.hint}</p>
         </header>
 
+        {catalog.source === 'demo' && (
+          <p className="demo-banner" role="status">
+            Catálogo de demonstração: dados fictícios, sem a TMDB.{' '}
+            <button type="button" className="linklike" onClick={() => catalog.switchSource('tmdb')}>
+              Usar a TMDB
+            </button>
+          </p>
+        )}
+
         <div className="tools">
-          <MovieSearch value={filters.query} onChange={filters.setQuery} />
+          <MovieSearch value={catalog.query} onChange={catalog.setQuery} />
           <MovieFilters
-            type={filters.type}
-            onTypeChange={filters.setType}
-            genres={filters.genres}
-            genre={filters.genre}
-            onGenreChange={filters.setGenre}
+            type={catalog.type}
+            onTypeChange={catalog.setType}
+            genres={catalog.genreOptions}
+            genre={catalog.genre}
+            onGenreChange={catalog.setGenre}
           />
         </div>
 
         <ResultsBar
-          count={filters.results.length}
-          sort={filters.sort}
-          onSortChange={filters.setSort}
-          hasFilters={filters.hasFilters}
-          onClear={filters.clear}
+          status={catalog.status}
+          count={catalog.items.length}
+          hasMore={catalog.hasMore}
+          sort={catalog.sort}
+          onSortChange={catalog.setSort}
+          hasFilters={catalog.hasFilters}
+          onClear={catalog.clear}
         />
 
-        <MovieGrid
-          items={filters.results}
-          selectedId={pending?.id}
-          onOpen={setDetail}
-          onClear={filters.clear}
-          hasFilters={filters.hasFilters}
-          query={filters.query}
-        />
+        <MovieGrid catalog={catalog} selectedId={pending?.id} onOpen={setDetail} />
+
+        {catalog.source === 'tmdb' && (
+          <p className="tmdb-notice">
+            Dados e imagens fornecidos pela TMDB. Este produto usa a API da TMDB, mas não é
+            endossado nem certificado por ela.
+          </p>
+        )}
       </div>
 
       <div className="pick__bar">
@@ -107,7 +117,7 @@ export default function PickMoviePage({ person }) {
           <div className="chosen" aria-live="polite">
             {pending ? (
               <>
-                <Poster movie={pending} size="mini" />
+                <PosterImage movie={pending} sizes="40px" eager />
                 <div className="chosen__text">
                   <span className="chosen__label">{copy.who} · sua escolha</span>
                   <span className="chosen__title">{pending.title}</span>

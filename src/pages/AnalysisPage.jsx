@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Button from '../components/Button.jsx'
-import Poster from '../components/Poster.jsx'
+import PosterImage from '../components/PosterImage.jsx'
 import TransitionScreen from '../components/TransitionScreen.jsx'
 import VennMark from '../components/VennMark.jsx'
 import { useSession } from '../context/sessionContext.js'
@@ -51,7 +51,7 @@ export default function AnalysisPage() {
     >
       <div className="pair" data-state={ready ? 'ready' : 'working'}>
         <div className="pair__item">
-          <Poster movie={first} size="md" />
+          <PosterImage movie={first} sizes="160px" eager />
           <p className="pair__cap">
             <span>Pessoa 1</span>
             <strong>{first.title}</strong>
@@ -66,7 +66,7 @@ export default function AnalysisPage() {
         </div>
 
         <div className="pair__item">
-          <Poster movie={second} size="md" />
+          <PosterImage movie={second} sizes="160px" eager />
           <p className="pair__cap">
             <span>Pessoa 2</span>
             <strong>{second.title}</strong>

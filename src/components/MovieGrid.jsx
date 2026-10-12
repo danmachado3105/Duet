@@ -1,6 +1,32 @@
+import Button from './Button.jsx'
+import CatalogMessage from './CatalogMessage.jsx'
 import MovieCard from './MovieCard.jsx'
+import MovieGridSkeleton from './MovieGridSkeleton.jsx'
 
-export default function MovieGrid({ items, selectedId, onOpen, onClear, hasFilters, query }) {
+export default function MovieGrid({ catalog, selectedId, onOpen }) {
+  const { status, error, items, query, hasFilters, hasMore, loadingMore, moreError } = catalog
+
+  if (status === 'loading') {
+    return (
+      <>
+        <p className="sr-only" role="status">
+          Carregando títulos...
+        </p>
+        <MovieGridSkeleton />
+      </>
+    )
+  }
+
+  if (status === 'error') {
+    return (
+      <CatalogMessage
+        error={error}
+        onRetry={catalog.retry}
+        onUseDemo={() => catalog.switchSource('demo')}
+      />
+    )
+  }
+
   const term = query.trim()
 
   return (
@@ -18,7 +44,7 @@ export default function MovieGrid({ items, selectedId, onOpen, onClear, hasFilte
               : 'Nenhum título combina com esses filtros.'}
           </p>
           {hasFilters && (
-            <button type="button" className="linklike" onClick={onClear}>
+            <button type="button" className="linklike" onClick={catalog.clear}>
               Limpar busca e filtros
             </button>
           )}
@@ -34,6 +60,15 @@ export default function MovieGrid({ items, selectedId, onOpen, onClear, hasFilte
             />
           ))}
         </ul>
+      )}
+
+      {hasMore && (
+        <div className="loadmore">
+          {moreError && <p role="alert">Não foi possível carregar mais títulos.</p>}
+          <Button variant="ghost" size="lg" onClick={catalog.loadMore} disabled={loadingMore}>
+            {loadingMore ? 'Carregando...' : moreError ? 'Tentar novamente' : 'Carregar mais'}
+          </Button>
+        </div>
       )}
     </>
   )

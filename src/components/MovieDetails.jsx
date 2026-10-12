@@ -1,10 +1,12 @@
 import { useEffect, useId, useRef } from 'react'
 import Button from './Button.jsx'
-import Poster from './Poster.jsx'
+import PosterImage from './PosterImage.jsx'
 import { CheckIcon, CloseIcon, StarIcon } from './Icons.jsx'
 import { catalogMeta } from '../data/catalog.js'
+import { backdropUrl } from '../services/tmdb.js'
 import { formatCertification, formatMinutes } from '../utils/catalog.js'
 import { useBackdropClose } from '../hooks/useBackdropClose.js'
+import { useTitleDetails } from '../hooks/useTitleDetails.js'
 
 // Painel de detalhes: janela central no desktop, "bottom sheet" no celular.
 // Usa o <dialog> nativo (Esc, foco preso no painel e backdrop já vêm prontos).
@@ -12,6 +14,7 @@ export default function MovieDetails({ movie, selected, onClose, onChoose }) {
   const ref = useRef(null)
   const titleId = useId()
   const backdrop = useBackdropClose(onClose)
+  const { item, status, retry } = useTitleDetails(movie)
 
   useEffect(() => {
     const dialog = ref.current
@@ -28,15 +31,24 @@ export default function MovieDetails({ movie, selected, onClose, onChoose }) {
     }
   }, [movie])
 
-  const isSeries = movie?.type === 'Série'
-  const certification = movie ? formatCertification(movie.certification) : null
-  const runtime = movie
-    ? isSeries
-      ? movie.seasons
-        ? String(movie.seasons)
-        : null
-      : formatMinutes(movie.duration)
-    : null
+  const facts = []
+  let backdropSrc = null
+
+  if (item) {
+    backdropSrc = backdropUrl(item.backdropPath)
+
+    if (item.type === 'Série') {
+      if (item.seasons) facts.push(['Temporadas', String(item.seasons)])
+      if (item.episodes) facts.push(['Episódios', String(item.episodes)])
+      if (item.episodeRuntime) facts.push(['Duração do episódio', formatMinutes(item.episodeRuntime)])
+    } else if (item.duration) {
+      facts.push(['Duração', formatMinutes(item.duration)])
+    }
+
+    const certification = formatCertification(item.certification)
+    if (certification) facts.push(['Classificação', certification])
+    if (item.language) facts.push(['Idioma original', item.language])
+  }
 
   return (
     <dialog
@@ -46,65 +58,92 @@ export default function MovieDetails({ movie, selected, onClose, onChoose }) {
       onClose={onClose}
       {...backdrop}
     >
-      {movie && (
+      {item && (
         <div className="details__panel">
+          {backdropSrc && (
+            <div className="details__backdrop" aria-hidden="true">
+              <img
+                src={backdropSrc}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                onError={(event) => {
+                  event.currentTarget.style.display = 'none'
+                }}
+              />
+            </div>
+          )}
+
           <button type="button" className="dialog__close" aria-label="Fechar" onClick={onClose}>
             <CloseIcon size={20} />
           </button>
 
           <div className="details__poster">
-            <Poster movie={movie} size="md" />
+            <PosterImage movie={item} sizes="200px" eager />
           </div>
 
           <div className="details__body">
             <span className="eyebrow">
-              {movie.type} · {movie.year}
+              {item.type}
+              {item.year ? ` · ${item.year}` : ''}
             </span>
             <h2 id={titleId} className="details__title">
-              {movie.title}
+              {item.title}
             </h2>
 
-            <p className="details__meta">
-              <span>
-                <StarIcon />
-                <span className="sr-only">Nota </span>
-                {movie.rating.toFixed(1)}
-              </span>
-            </p>
+            {item.rating != null && (
+              <p className="details__meta">
+                <span>
+                  <StarIcon />
+                  <span className="sr-only">Nota </span>
+                  {item.rating.toFixed(1)}
+                </span>
+              </p>
+            )}
 
-            <ul className="chips">
-              {movie.genres.map((name) => (
-                <li key={name} className="chip">
-                  {name}
-                </li>
-              ))}
-            </ul>
+            {item.genres.length > 0 && (
+              <ul className="chips">
+                {item.genres.map((name) => (
+                  <li key={name} className="chip">
+                    {name}
+                  </li>
+                ))}
+              </ul>
+            )}
 
-            <dl className="facts">
-              {runtime && (
-                <div>
-                  <dt>{isSeries ? 'Temporadas' : 'Duração'}</dt>
-                  <dd>{runtime}</dd>
-                </div>
-              )}
-              {certification && (
-                <div>
-                  <dt>Classificação</dt>
-                  <dd>{certification}</dd>
-                </div>
-              )}
-              {movie.language && (
-                <div>
-                  <dt>Idioma original</dt>
-                  <dd>{movie.language}</dd>
-                </div>
-              )}
-            </dl>
+            {facts.length > 0 && (
+              <dl className="facts">
+                {facts.map(([label, value]) => (
+                  <div key={label}>
+                    <dt>{label}</dt>
+                    <dd>{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
 
-            <p className="details__desc">{movie.synopsis}</p>
+            {status === 'loading' && facts.length === 0 && (
+              <p className="details__loading" role="status">
+                Carregando detalhes...
+              </p>
+            )}
 
-            {movie.keywords.length > 0 && (
-              <p className="details__themes">Temas: {movie.keywords.join(', ')}</p>
+            {status === 'error' && (
+              <p className="details__note" role="alert">
+                Não foi possível carregar todos os detalhes.{' '}
+                <button type="button" className="linklike" onClick={retry}>
+                  Tentar novamente
+                </button>
+              </p>
+            )}
+
+            <p className="details__desc">{item.synopsis ?? 'Sinopse indisponível em português.'}</p>
+            {item.synopsis && item.synopsisLanguage === 'en' && (
+              <p className="details__note">Sinopse em inglês: ainda não há tradução.</p>
+            )}
+
+            {item.keywords?.length > 0 && (
+              <p className="details__themes">Temas: {item.keywords.join(', ')}</p>
             )}
 
             <div className="details__actions">
@@ -114,7 +153,7 @@ export default function MovieDetails({ movie, selected, onClose, onChoose }) {
                 </Button>
               ) : (
                 <>
-                  <Button size="lg" arrow onClick={() => onChoose(movie)}>
+                  <Button size="lg" arrow onClick={() => onChoose(item)}>
                     Escolher este
                   </Button>
                   <Button variant="ghost" size="lg" onClick={onClose}>
@@ -124,7 +163,7 @@ export default function MovieDetails({ movie, selected, onClose, onChoose }) {
               )}
             </div>
 
-            {!catalogMeta.officialData && <p className="details__demo">{catalogMeta.note}</p>}
+            {item.source === 'demo' && <p className="details__demo">{catalogMeta.note}</p>}
           </div>
         </div>
       )}

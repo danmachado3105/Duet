@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Variáveis de ambiente (a chave da TMDB não vai para o Git)
+.env
+.env.*
+!.env.example

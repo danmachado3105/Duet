@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/Button.jsx'
-import Poster from '../components/Poster.jsx'
+import PosterImage from '../components/PosterImage.jsx'
 import TransitionScreen from '../components/TransitionScreen.jsx'
 import { useSession } from '../context/sessionContext.js'
 import { ROUTES } from '../utils/sessionFlow.js'
@@ -35,7 +35,7 @@ export default function ResultPage() {
     >
       <div className="pair pair--static">
         <div className="pair__item">
-          <Poster movie={first} size="md" />
+          <PosterImage movie={first} sizes="160px" eager />
           <p className="pair__cap">
             <span>Pessoa 1</span>
             <strong>{first.title}</strong>
@@ -45,7 +45,7 @@ export default function ResultPage() {
           +
         </span>
         <div className="pair__item">
-          <Poster movie={second} size="md" />
+          <PosterImage movie={second} sizes="160px" eager />
           <p className="pair__cap">
             <span>Pessoa 2</span>
             <strong>{second.title}</strong>

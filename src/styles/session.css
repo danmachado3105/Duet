@@ -1081,3 +1081,197 @@ a.linklike {
 .common .chips {
   justify-content: center;
 }
+
+/* ---------- TMDB: pôsteres reais, estados e detalhes ---------- */
+.pimg {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  aspect-ratio: 2 / 3;
+  container-type: inline-size;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--ink-800);
+  color: #fff;
+  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.8);
+  transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease);
+}
+
+.pimg img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.45s var(--ease);
+}
+
+.pimg[data-status='loaded'] img {
+  opacity: 1;
+}
+
+.pimg[data-status='loading'] {
+  background: linear-gradient(110deg, var(--ink-800) 30%, #26221f 50%, var(--ink-800) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Sem pôster (ou imagem com erro): cartaz com o título, no estilo do DUET */
+.pimg[data-status='error'] {
+  padding: 8px;
+  background: linear-gradient(160deg, #2a1c18, var(--ink-900));
+}
+
+.pimg[data-status='error']::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  pointer-events: none;
+}
+
+.pimg__year {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  opacity: 0.8;
+}
+
+.pimg__title {
+  font-family: var(--font-display);
+  font-size: max(0.6rem, 11cqw);
+  line-height: 1.05;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+/* Mesmos comportamentos do pôster em CSS, agora também para o pôster real */
+.mcard .pimg {
+  width: 100%;
+}
+
+.mcard__btn:hover .pimg {
+  transform: translateY(-6px);
+  box-shadow: 0 30px 50px -20px rgba(0, 0, 0, 0.9);
+}
+
+.mcard[data-selected='true'] .pimg {
+  outline: 2px solid var(--person);
+  outline-offset: 3px;
+}
+
+.chosen .pimg {
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.chosen .pimg__year,
+.chosen .pimg__title {
+  display: none;
+}
+
+.pair__item .pimg {
+  width: min(100%, 160px);
+}
+
+/* Esqueleto da grade */
+.skeleton-line {
+  display: block;
+  height: 14px;
+  margin-top: var(--space-3);
+  border-radius: 6px;
+  background: var(--ink-800);
+}
+
+.skeleton-line--short {
+  width: 55%;
+  height: 10px;
+  margin-top: var(--space-2);
+}
+
+/* Mais gêneros */
+.genre--more {
+  border-style: dashed;
+}
+
+.genres[data-expanded='true'] {
+  flex-wrap: wrap;
+  margin-inline: 0;
+  padding-inline: 0;
+  overflow: visible;
+}
+
+/* Carregar mais, erros e avisos */
+.loadmore {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-12);
+  color: var(--text-2);
+}
+
+.empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.demo-banner {
+  margin-bottom: var(--space-6);
+  padding: var(--space-3) var(--space-4);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  color: var(--text-2);
+}
+
+.tmdb-notice {
+  max-width: 40rem;
+  margin-top: var(--space-12);
+  font-size: 0.75rem;
+  color: var(--text-2);
+}
+
+/* Detalhes: imagem de fundo e estados */
+.details__backdrop {
+  position: absolute;
+  inset: 0 0 auto;
+  height: min(240px, 50%);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.details__backdrop img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.3;
+  -webkit-mask-image: linear-gradient(to bottom, #000 25%, transparent);
+  mask-image: linear-gradient(to bottom, #000 25%, transparent);
+}
+
+.details__poster,
+.details__body {
+  position: relative;
+}
+
+.dialog__close {
+  z-index: 2;
+}
+
+.details__loading,
+.details__note {
+  margin-top: var(--space-3);
+  font-size: 0.85rem;
+  color: var(--text-2);
+}

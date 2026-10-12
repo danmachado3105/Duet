@@ -1,14 +1,26 @@
 import { useId } from 'react'
 import { SORT_OPTIONS } from '../utils/catalog.js'
 
-export default function ResultsBar({ count, sort, onSortChange, hasFilters, onClear }) {
+export default function ResultsBar({
+  status,
+  count,
+  hasMore,
+  sort,
+  onSortChange,
+  hasFilters,
+  onClear,
+}) {
   const selectId = useId()
+
+  let label = ''
+  if (status === 'loading') label = 'Carregando...'
+  else if (status === 'success') {
+    label = `${count}${hasMore ? '+' : ''} ${count === 1 && !hasMore ? 'título' : 'títulos'}`
+  }
 
   return (
     <div className="results">
-      <p className="results__count">
-        {count} {count === 1 ? 'título' : 'títulos'}
-      </p>
+      <p className="results__count">{label}</p>
 
       <div className="results__tools">
         {hasFilters && (
