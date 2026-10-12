@@ -84,3 +84,17 @@ export function formatCertification(value) {
   if (!value) return null
   return value === 'L' ? 'Livre' : `${value} anos`
 }
+
+// Ordenação dos títulos vindos da TMDB (e das listas combinadas).
+// Usa: rating (null vai para o fim), voteCount, releaseDate ("AAAA-MM-DD") e popularity.
+export function sortTitles(items, sort = DEFAULT_SORT) {
+  const list = [...items]
+  const byRating = (a, b) =>
+    (b.rating ?? -1) - (a.rating ?? -1) || (b.voteCount ?? 0) - (a.voteCount ?? 0)
+  const byDate = (a, b) => String(b.releaseDate ?? '').localeCompare(String(a.releaseDate ?? ''))
+  const byPopularity = (a, b) => (b.popularity ?? 0) - (a.popularity ?? 0)
+
+  if (sort === 'rating') return list.sort(byRating)
+  if (sort === 'recent') return list.sort(byDate)
+  return list.sort(byPopularity)
+}
