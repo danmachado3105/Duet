@@ -30,7 +30,7 @@ export default function MovieGrid({ catalog, selectedId, onOpen }) {
   const term = query.trim()
 
   return (
-    <>
+    <div key={catalog.viewKey} className="view-in">
       <p className="sr-only" aria-live="polite">
         {items.length} {items.length === 1 ? 'título encontrado' : 'títulos encontrados'}
       </p>
@@ -51,10 +51,11 @@ export default function MovieGrid({ catalog, selectedId, onOpen }) {
         </div>
       ) : (
         <ul className="mgrid">
-          {items.map((movie) => (
+          {items.map((movie, index) => (
             <MovieCard
               key={movie.id}
               movie={movie}
+              index={index}
               selected={movie.id === selectedId}
               onOpen={onOpen}
             />
@@ -70,6 +71,6 @@ export default function MovieGrid({ catalog, selectedId, onOpen }) {
           </Button>
         </div>
       )}
-    </>
+    </div>
   )
 }

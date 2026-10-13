@@ -1275,3 +1275,15 @@ a.linklike {
   font-size: 0.85rem;
   color: var(--text-2);
 }
+
+/* ---------- Transições do catálogo ---------- */
+/* A grade entra suavemente ao trocar de categoria, gênero ou ordenação */
+.view-in {
+  animation: fade-in 0.3s var(--ease);
+}
+
+/* Cada card entra em sequência curta (--i vem do MovieCard) */
+.mcard {
+  animation: rise 0.5s var(--ease) backwards;
+  animation-delay: calc(var(--i, 0) * 40ms);
+}

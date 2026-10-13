@@ -4,6 +4,7 @@ const TYPES = [
   { id: 'all', label: 'Todos' },
   { id: 'movie', label: 'Filmes' },
   { id: 'series', label: 'Séries' },
+  { id: 'animation', label: 'Animações' },
 ]
 
 const VISIBLE_GENRES = 10

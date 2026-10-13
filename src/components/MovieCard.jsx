@@ -3,11 +3,12 @@ import { CheckIcon, StarIcon } from './Icons.jsx'
 
 const CARD_SIZES = '(min-width: 1120px) 220px, (min-width: 900px) 22vw, (min-width: 640px) 30vw, 46vw'
 
-export default function MovieCard({ movie, selected, onOpen }) {
+export default function MovieCard({ movie, selected, onOpen, index = 0 }) {
   const year = movie.year ? `, ${movie.year}` : ''
 
   return (
-    <li className="mcard" data-selected={selected}>
+    // --i escalona a entrada dos cards (limitado, para a grade não demorar a aparecer)
+    <li className="mcard" data-selected={selected} style={{ '--i': Math.min(index, 11) }}>
       <button
         type="button"
         className="mcard__btn"

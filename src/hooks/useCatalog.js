@@ -54,10 +54,11 @@ function reducer(state, action) {
   }
 }
 
-export function useCatalog() {
+// initialType: 'movie' | 'series' | 'animation' (vem da categoria escolhida na landing)
+export function useCatalog({ initialType } = {}) {
   const [source, setSource] = useState('tmdb') // 'tmdb' | 'demo'
   const [query, setQuery] = useState('')
-  const [type, setTypeState] = useState('all') // 'all' | 'movie' | 'series'
+  const [type, setTypeState] = useState(initialType ?? 'all') // 'all' | 'movie' | 'series' | 'animation'
   const [genreName, setGenreName] = useState(null)
   const [sort, setSort] = useState(DEFAULT_SORT)
   const [genres, setGenres] = useState(null)
@@ -84,12 +85,14 @@ export function useCatalog() {
     }
   }, [isDemo, reloadKey])
 
-  const genreOptions = useMemo(
-    () => (isDemo ? DEMO_GENRES : buildGenreOptions(genres, type)),
-    [isDemo, genres, type],
-  )
+  const genreOptions = useMemo(() => {
+    if (!isDemo) return buildGenreOptions(genres, type)
+    return type === 'animation'
+      ? DEMO_GENRES.filter((option) => option.name !== 'Animação')
+      : DEMO_GENRES
+  }, [isDemo, genres, type])
 
-  // Gênero selecionado, só se ele existir para o tipo atual
+  // Gênero selecionado, só se ele existir para a categoria atual
   const selected = genreOptions.find((option) => option.name === genreName) ?? null
   const selectedName = selected?.name ?? null
   const idMovie = selected?.ids.movie ?? null
@@ -102,12 +105,14 @@ export function useCatalog() {
   const setType = useCallback(
     (next) => {
       setTypeState(next)
-      // Mantém o gênero só se ele existir para o novo tipo
-      setGenreName((current) =>
-        current && !isDemo && !buildGenreOptions(genres, next).some((o) => o.name === current)
-          ? null
-          : current,
-      )
+      // Mantém o gênero só se ele ainda existir na nova categoria
+      setGenreName((current) => {
+        if (!current) return current
+        if (isDemo) return next === 'animation' && current === 'Animação' ? null : current
+        return buildGenreOptions(genres, next).some((option) => option.name === current)
+          ? current
+          : null
+      })
     },
     [genres, isDemo],
   )
@@ -186,5 +191,7 @@ export function useCatalog() {
     retry,
     hasFilters,
     clear,
+    // Muda quando a categoria, o gênero ou a ordenação mudam: reinicia a animação de entrada da grade
+    viewKey: `${source}|${type}|${selectedName ?? ''}|${sort}`,
   }
 }
