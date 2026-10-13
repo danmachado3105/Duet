@@ -19,11 +19,16 @@ export function normalize(text = '') {
 }
 
 // A busca olha só o título, para não trazer resultados incoerentes.
+// 'animation' é um gênero (vale para filmes e séries), não um tipo de formato.
 export function filterCatalog(catalog, { query = '', type = 'all', genre = null } = {}) {
   const q = normalize(query)
 
   return catalog.filter((item) => {
-    if (type !== 'all' && item.type !== TYPE_BY_FILTER[type]) return false
+    if (type === 'animation') {
+      if (!item.genres.includes('Animação')) return false
+    } else if (type !== 'all' && item.type !== TYPE_BY_FILTER[type]) {
+      return false
+    }
     if (genre && !item.genres.includes(genre)) return false
     return !q || normalize(item.title).includes(q)
   })

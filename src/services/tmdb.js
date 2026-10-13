@@ -194,6 +194,9 @@ export function normalizeTitle(raw, mediaType) {
 }
 
 // ---------- Listas, busca e filtros ----------
+// "Animações" não é um formato: é o gênero de id 16, que existe para filmes e séries.
+const ANIMATION_GENRE_ID = 16
+
 const SORT_BY = {
   relevance: { movie: 'popularity.desc', tv: 'popularity.desc' },
   rating: { movie: 'vote_average.desc', tv: 'vote_average.desc' },
@@ -202,12 +205,13 @@ const SORT_BY = {
 
 const today = () => new Date().toISOString().slice(0, 10)
 
-function discoverParams(mediaType, sort, genreId, page) {
+function discoverParams(mediaType, sort, genreIds, page) {
   const isMovie = mediaType === 'movie'
   const params = {
     page,
     include_adult: false,
-    with_genres: genreId ?? undefined,
+    // Vírgula = "e": o título precisa ter todos os gêneros (ex.: Animação e Comédia)
+    with_genres: genreIds.length ? genreIds.join(',') : undefined,
     sort_by: (SORT_BY[sort] ?? SORT_BY.relevance)[mediaType],
   }
   // Evita notas "10,0" de títulos com poucos votos e lançamentos que ainda não saíram
@@ -219,17 +223,16 @@ function discoverParams(mediaType, sort, genreId, page) {
   return params
 }
 
-async function fetchPage({ mediaType, query, genre, sort, page }) {
-  const genreId = genre?.ids?.[mediaType] ?? null
+async function fetchPage({ mediaType, query, genreIds, sort, page }) {
   let path
   let params
 
   if (query) {
     path = `/search/${mediaType}`
     params = { query, page, include_adult: false }
-  } else if (genreId || sort !== DEFAULT_SORT) {
+  } else if (genreIds.length > 0 || sort !== DEFAULT_SORT) {
     path = `/discover/${mediaType}`
-    params = discoverParams(mediaType, sort, genreId, page)
+    params = discoverParams(mediaType, sort, genreIds, page)
   } else {
     path = `/${mediaType}/popular`
     params = { page }
@@ -238,7 +241,9 @@ async function fetchPage({ mediaType, query, genre, sort, page }) {
   const data = await request(path, params)
   let items = (data.results ?? []).map((raw) => normalizeTitle(raw, mediaType))
   // A busca da TMDB não filtra por gênero: o filtro é aplicado em cada página recebida
-  if (query && genreId) items = items.filter((item) => item.genreIds.includes(genreId))
+  if (query && genreIds.length > 0) {
+    items = items.filter((item) => genreIds.every((id) => item.genreIds.includes(id)))
+  }
 
   return { items, totalPages: Math.min(data.total_pages ?? 1, MAX_PAGES) }
 }
@@ -263,7 +268,8 @@ function uniqueById(items) {
   })
 }
 
-// type: 'all' | 'movie' | 'series' · genre: { name, ids: { movie, tv } } | null
+// type: 'all' | 'movie' | 'series' | 'animation' · genre: { name, ids: { movie, tv } } | null
+// 'animation' = filmes e séries com o gênero Animação (o gênero escolhido, se houver, se soma a ele).
 // Retorna { items, hasMore }. Lança TmdbError.
 export async function fetchTitles({ query = '', type = 'all', genre = null, sort = DEFAULT_SORT, page = 1 }) {
   void loadImageConfig()
@@ -273,8 +279,17 @@ export async function fetchTitles({ query = '', type = 'all', genre = null, sort
   if (genre) mediaTypes = mediaTypes.filter((mediaType) => genre.ids[mediaType])
   if (mediaTypes.length === 0) return { items: [], hasMore: false }
 
+  const genreIdsFor = (mediaType) => {
+    const ids = type === 'animation' ? [ANIMATION_GENRE_ID] : []
+    const chosen = genre?.ids?.[mediaType]
+    if (chosen && !ids.includes(chosen)) ids.push(chosen)
+    return ids
+  }
+
   const pages = await Promise.all(
-    mediaTypes.map((mediaType) => fetchPage({ mediaType, query, genre, sort, page })),
+    mediaTypes.map((mediaType) =>
+      fetchPage({ mediaType, query, genreIds: genreIdsFor(mediaType), sort, page }),
+    ),
   )
 
   const lists = pages.map((result) => result.items)
