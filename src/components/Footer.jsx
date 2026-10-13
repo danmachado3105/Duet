@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import Logo from './Logo.jsx'
 import { navLinks } from '../data/navigation.js'
+import { CATEGORIES, categoryRoute } from '../utils/categories.js'
 import { ROUTES } from '../utils/sessionFlow.js'
 
 export default function Footer() {
@@ -14,6 +15,7 @@ export default function Footer() {
           </div>
 
           <nav aria-label="Rodapé">
+            <p className="footer__heading">Navegação</p>
             <ul className="footer__links">
               {navLinks.map((link) => (
                 <li key={link.label}>
@@ -25,12 +27,31 @@ export default function Footer() {
               </li>
             </ul>
           </nav>
+
+          <nav aria-label="Categorias">
+            <p className="footer__heading">Categorias</p>
+            <ul className="footer__links">
+              {CATEGORIES.map((category) => (
+                <li key={category.id}>
+                  <Link to={categoryRoute(category)}>{category.label}</Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
 
         <div className="footer__bottom">
           <p>Projeto em desenvolvimento.</p>
           <p>© {new Date().getFullYear()} DUET</p>
         </div>
+
+        <p className="footer__credit">
+          Dados e imagens de filmes e séries:{' '}
+          <a href="https://www.themoviedb.org" target="_blank" rel="noreferrer">
+            TMDB
+          </a>
+          . Este produto usa a API da TMDB, mas não é endossado nem certificado por ela.
+        </p>
       </div>
     </footer>
   )
