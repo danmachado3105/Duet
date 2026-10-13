@@ -7,7 +7,8 @@ export const FOUND_MS = 1500
 export const TOTAL_MS = STEP_ONE_MS + ANALYZE_MS + FOUND_MS
 
 // Etapas: 1 escolhas · 2 análise (analisando → encontrou) · 3 resultado
-export function useDemoSteps() {
+// `enabled`: só começa a tocar sozinho quando os dados da vitrine já chegaram
+export function useDemoSteps({ enabled = true } = {}) {
   const reduced = usePrefersReducedMotion()
   const [step, setStep] = useState(1)
   const [found, setFound] = useState(false)
@@ -44,12 +45,12 @@ export function useDemoSteps() {
     setStep(next)
   }, [])
 
-  // Toca uma vez ao carregar (exceto com "reduzir movimento")
+  // Toca uma vez (exceto com "reduzir movimento")
   useEffect(() => {
-    if (reduced) return
+    if (reduced || !enabled) return
     const timer = setTimeout(play, 1200)
     return () => clearTimeout(timer)
-  }, [reduced, play])
+  }, [reduced, enabled, play])
 
   return { step, found, playing, runId, play, goTo }
 }

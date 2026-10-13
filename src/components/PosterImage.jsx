@@ -42,7 +42,12 @@ function PosterFrame({ movie, sizes, eager, className }) {
 
 // Pôster real da TMDB. Sem imagem (ou com erro), mostra um cartaz com o título.
 // Títulos de demonstração (sem posterPath, com "art") usam o pôster em CSS.
+// Títulos "placeholder" (landing carregando) viram um esqueleto com a mesma proporção.
 export default function PosterImage({ movie, sizes = DEFAULT_SIZES, eager = false, className = '' }) {
+  if (movie.placeholder) {
+    return <span className={`pimg ${className}`.trim()} data-status="loading" aria-hidden="true" />
+  }
+
   if (!movie.posterPath && movie.art) {
     return <Poster movie={movie} size="md" className={className} />
   }

@@ -1,7 +1,8 @@
 import { useId } from 'react'
-import Poster from './Poster.jsx'
+import PosterImage from './PosterImage.jsx'
 import { PlayIcon } from './Icons.jsx'
-import { heroDemo } from '../data/movies.js'
+import { useShowcase } from '../context/showcaseContext.js'
+import { SESSION_CODE } from '../utils/showcase.js'
 import { useDemoSteps, TOTAL_MS } from '../hooks/useDemoSteps.js'
 import { useCountUp } from '../hooks/useCountUp.js'
 import { useTilt } from '../hooks/useTilt.js'
@@ -12,16 +13,22 @@ const TABS = [
   { n: 3, label: 'O resultado' },
 ]
 
+const metaLine = (movie) =>
+  [movie.genres?.[0] ?? movie.type, movie.year].filter(Boolean).join(' · ')
+
 export default function MatchCard() {
   const clipId = useId().replace(/:/g, '')
-  const { step, found, playing, runId, play, goTo } = useDemoSteps()
+  const { status: showcaseStatus, data } = useShowcase()
+  const { pair, scan, result } = data
+  const { step, found, playing, runId, play, goTo } = useDemoSteps({
+    enabled: showcaseStatus !== 'loading',
+  })
   const tiltRef = useTilt(3)
-  const { session, picks, scan, result } = heroDemo
   const score = useCountUp(result.score, step === 3)
 
-  let status = 'Dois gostos diferentes.'
-  if (step === 2) status = found ? 'Encontramos algo em comum.' : 'Analisando os dois gostos...'
-  if (step === 3) status = `O DUET encontrou ${result.movie.title}, ${result.score}% compatível.`
+  let liveText = 'Dois gostos diferentes.'
+  if (step === 2) liveText = found ? 'Encontramos algo em comum.' : 'Analisando os dois gostos...'
+  if (step === 3) liveText = `O DUET encontrou ${result.movie.title}, ${result.score}% compatível.`
 
   let playLabel = 'Reproduzir demonstração'
   if (playing) playLabel = 'Reproduzindo...'
@@ -30,16 +37,16 @@ export default function MatchCard() {
   return (
     <div className="demo" ref={tiltRef} role="group" aria-label="Demonstração interativa do DUET">
       <p className="sr-only" aria-live="polite">
-        {status}
+        {liveText}
       </p>
 
       <div className="demo__bar">
         <span className="demo__session">
           <span className="demo__dot" aria-hidden="true" />
-          Sessão <strong>{session}</strong>
+          Sessão <strong>{SESSION_CODE}</strong>
         </span>
         <span className="demo__people" aria-hidden="true">
-          {picks.map((person) => (
+          {pair.map((person) => (
             <span key={person.name} className="avatar" data-tone={person.tone}>
               {person.name[0]}
             </span>
@@ -51,19 +58,17 @@ export default function MatchCard() {
         {/* Etapa 1: as escolhas */}
         <div className="panel" data-active={step === 1}>
           <ul className="demo__picks">
-            {picks.map((person, i) => (
-              <li key={person.name} className="pick" style={{ '--i': i }}>
-                <div className="pick__text">
-                  <span className="pick__label">
+            {pair.map((person, i) => (
+              <li key={person.name} className="dpick" style={{ '--i': i }}>
+                <div className="dpick__text">
+                  <span className="dpick__label">
                     <span className="dot" data-tone={person.tone} aria-hidden="true" />
                     {person.name} escolheu
                   </span>
-                  <strong className="pick__title">{person.movie.title}</strong>
-                  <span className="pick__meta">
-                    {person.movie.genre} · {person.movie.year}
-                  </span>
+                  <strong className="dpick__title">{person.movie.title}</strong>
+                  <span className="dpick__meta">{metaLine(person.movie)}</span>
                 </div>
-                <Poster movie={person.movie} size="mini" />
+                <PosterImage movie={person.movie} sizes="56px" eager />
               </li>
             ))}
           </ul>
@@ -121,7 +126,7 @@ export default function MatchCard() {
         {/* Etapa 3: o resultado */}
         <div className="panel" data-active={step === 3}>
           <div className="result">
-            <Poster movie={result.movie} size="md" className="result__poster" />
+            <PosterImage movie={result.movie} sizes="96px" eager className="result__poster" />
             <div className="result__body">
               <span className="result__label" style={{ '--i': 0 }}>
                 O DUET encontrou
@@ -172,6 +177,13 @@ export default function MatchCard() {
           {playLabel}
         </button>
       </div>
+
+      <p className="demo__caption">
+        {data.source === 'tmdb'
+          ? 'Exemplo ilustrativo com títulos reais da TMDB.'
+          : 'Exemplo ilustrativo.'}{' '}
+        Recomendações e match chegam em breve.
+      </p>
     </div>
   )
 }

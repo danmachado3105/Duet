@@ -1,15 +1,18 @@
-import Poster from './Poster.jsx'
+import PosterImage from './PosterImage.jsx'
 import VennMark from './VennMark.jsx'
-import { movies, sessionMock } from '../data/movies.js'
+import { useShowcase } from '../context/showcaseContext.js'
 
 export default function StepVisual({ type }) {
+  const { data } = useShowcase()
+  const [first, second] = data.pair
+
   switch (type) {
     case 'picks':
       return (
         <div className="sv">
-          <Poster movie={movies.interstellar} size="sm" />
+          <PosterImage movie={first.movie} sizes="78px" />
           <span className="sv__plus">+</span>
-          <Poster movie={movies.corra} size="sm" />
+          <PosterImage movie={second.movie} sizes="78px" />
         </div>
       )
 
@@ -23,7 +26,7 @@ export default function StepVisual({ type }) {
     case 'ranking':
       return (
         <ul className="sv sv--ranking">
-          {sessionMock.recommendations.map((item, i) => (
+          {data.recommendations.map((item, i) => (
             <li key={item.movie.id} style={{ '--w': `${item.score}%`, '--i': i }}>
               <span>{item.movie.title}</span>
               <b>{item.score}%</b>
@@ -38,7 +41,7 @@ export default function StepVisual({ type }) {
     case 'match':
       return (
         <div className="sv sv--match">
-          <Poster movie={movies.origem} size="sm" />
+          <PosterImage movie={data.result.movie} sizes="78px" />
           <span className="sv__stamp">Match</span>
         </div>
       )

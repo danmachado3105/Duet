@@ -1,18 +1,22 @@
-import Poster from './Poster.jsx'
+import PosterImage from './PosterImage.jsx'
 import VennMark from './VennMark.jsx'
-import { movies } from '../data/movies.js'
+import { useShowcase } from '../context/showcaseContext.js'
 
 export default function FlowStrip() {
+  const { data } = useShowcase()
+  const [first, second] = data.pair
+  const result = data.result.movie
+
   return (
     <div
       className="flow"
       role="img"
-      aria-label="Dois filmes, Interstellar e Corra!, entram no DUET e saem como uma única recomendação: A Origem."
+      aria-label={`Dois títulos, ${first.movie.title} e ${second.movie.title}, entram no DUET e saem como uma única sugestão: ${result.title}.`}
     >
       <div className="flow__group">
-        <Poster movie={movies.interstellar} size="sm" />
+        <PosterImage movie={first.movie} sizes="78px" />
         <span className="flow__plus">+</span>
-        <Poster movie={movies.corra} size="sm" />
+        <PosterImage movie={second.movie} sizes="78px" />
       </div>
 
       <span className="flow__arrow" />
@@ -24,7 +28,7 @@ export default function FlowStrip() {
 
       <span className="flow__arrow" />
 
-      <Poster movie={movies.origem} size="sm" />
+      <PosterImage movie={result} sizes="78px" />
     </div>
   )
 }
