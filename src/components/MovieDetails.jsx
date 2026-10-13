@@ -9,8 +9,15 @@ import { useBackdropClose } from '../hooks/useBackdropClose.js'
 import { useTitleDetails } from '../hooks/useTitleDetails.js'
 
 // Painel de detalhes: janela central no desktop, "bottom sheet" no celular.
-// Usa o <dialog> nativo (Esc, foco preso no painel e backdrop já vêm prontos).
-export default function MovieDetails({ movie, selected, onClose, onChoose }) {
+// readOnly: só mostra as informações (usado na tela de resultados).
+export default function MovieDetails({
+  movie,
+  selected = false,
+  limitReached = false,
+  readOnly = false,
+  onClose,
+  onToggle,
+}) {
   const ref = useRef(null)
   const titleId = useId()
   const backdrop = useBackdropClose(onClose)
@@ -147,14 +154,23 @@ export default function MovieDetails({ movie, selected, onClose, onChoose }) {
             )}
 
             <div className="details__actions">
-              {selected ? (
+              {readOnly ? (
                 <Button size="lg" onClick={onClose}>
-                  <CheckIcon /> Escolhido
+                  Fechar
                 </Button>
+              ) : selected ? (
+                <>
+                  <Button size="lg" onClick={onClose}>
+                    <CheckIcon /> Na sua lista
+                  </Button>
+                  <Button variant="ghost" size="lg" onClick={() => onToggle(item)}>
+                    Remover da lista
+                  </Button>
+                </>
               ) : (
                 <>
-                  <Button size="lg" arrow onClick={() => onChoose(item)}>
-                    Escolher este
+                  <Button size="lg" arrow disabled={limitReached} onClick={() => onToggle(item)}>
+                    {limitReached ? 'Limite de títulos atingido' : 'Adicionar à lista'}
                   </Button>
                   <Button variant="ghost" size="lg" onClick={onClose}>
                     Voltar ao catálogo
