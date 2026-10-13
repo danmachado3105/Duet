@@ -340,3 +340,25 @@ export async function getDetails(mediaType, tmdbId) {
     backdropPath: data.backdrop_path || null,
   }
 }
+
+// ---------- Compatibilidade ----------
+// Nome do gênero pelo id (precisa de getGenres() já carregado)
+export const genreNameOf = (id) => genreNames.get(id) ?? null
+
+// Títulos "parecidos" segundo a TMDB, a partir de um título
+export async function getRecommendationsFor(mediaType, tmdbId) {
+  const data = await request(`/${mediaType}/${tmdbId}/recommendations`, { page: 1 })
+  return (data.results ?? []).map((raw) => normalizeTitle(raw, mediaType))
+}
+
+// Títulos que têm TODOS os gêneros informados (ids da TMDB para o tipo), do mais popular ao menos
+export async function discoverByGenres(mediaType, genreIds, page = 1) {
+  const data = await request(`/discover/${mediaType}`, {
+    page,
+    include_adult: false,
+    sort_by: 'popularity.desc',
+    with_genres: genreIds.join(','),
+    'vote_count.gte': mediaType === 'movie' ? 200 : 100,
+  })
+  return (data.results ?? []).map((raw) => normalizeTitle(raw, mediaType))
+}
