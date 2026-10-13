@@ -1,25 +1,35 @@
-export const STORAGE_KEY = 'duet:session:v3'
-const LEGACY_KEYS = ['duet:session:v1', 'duet:session:v2']
+export const STORAGE_KEY = 'duet:session:v4'
+const LEGACY_KEYS = ['duet:session:v1', 'duet:session:v2', 'duet:session:v3']
+
+export const MAX_PICKS = 8
+export const RECOMMENDED_PICKS = 3
 
 const POSTER_PATH = /^\/[A-Za-z0-9_-]+\.(?:jpe?g|png|webp)$/i
 const HEX_COLOR = /^#[0-9a-f]{3,8}$/i
 
+// Cada pessoa tem uma LISTA de títulos. As listas nunca se misturam.
 export const initialSession = {
-  person1: { selectedMovie: null },
-  person2: { selectedMovie: null },
+  person1: { selections: [] },
+  person2: { selections: [] },
 }
 
 export const personKey = (person) => (person === 1 ? 'person1' : 'person2')
 
 export const getProgress = (session) => ({
-  first: Boolean(session.person1.selectedMovie),
-  second: Boolean(session.person2.selectedMovie),
+  first: session.person1.selections.length > 0,
+  second: session.person2.selections.length > 0,
 })
+
+// Identifica as escolhas atuais (usado para saber se o resultado em cache ainda vale)
+export const selectionKey = (session) =>
+  [session.person1.selections, session.person2.selections]
+    .map((list) => list.map((title) => title.id).join(','))
+    .join('|')
 
 export function sessionReducer(state, action) {
   switch (action.type) {
-    case 'select':
-      return { ...state, [action.person]: { selectedMovie: action.movie } }
+    case 'set':
+      return { ...state, [action.person]: { selections: action.selections } }
     case 'reset':
       return initialSession
     default:
@@ -27,9 +37,8 @@ export function sessionReducer(state, action) {
   }
 }
 
-// ---------- Persistência: só um resumo do título, sem dados pessoais ----------
+// ---------- Persistência: só um resumo de cada título, sem dados pessoais ----------
 export function toSnapshot(movie) {
-  if (!movie) return null
   return {
     id: movie.id,
     source: movie.source ?? 'tmdb',
@@ -39,6 +48,7 @@ export function toSnapshot(movie) {
     title: movie.title,
     year: movie.year ?? null,
     genres: movie.genres ?? [],
+    genreIds: movie.genreIds ?? [],
     rating: movie.rating ?? null,
     posterPath: movie.posterPath ?? null,
     art: movie.art ?? null, // só os títulos de demonstração têm
@@ -52,7 +62,7 @@ function sanitizeArt(art) {
   return typeof motif === 'string' && colorsOk ? { motif, a, b, c } : null
 }
 
-// Valida tudo: dado ausente ou adulterado vira null (a etapa é refeita)
+// Valida tudo: dado ausente ou adulterado vira null
 export function fromSnapshot(value) {
   if (!value || typeof value !== 'object') return null
   if (typeof value.id !== 'string' || !value.id) return null
@@ -71,7 +81,10 @@ export function fromSnapshot(value) {
     title: value.title.slice(0, 200),
     year: Number.isInteger(value.year) ? value.year : null,
     genres: Array.isArray(value.genres)
-      ? value.genres.filter((genre) => typeof genre === 'string').slice(0, 10)
+      ? value.genres.filter((genre) => typeof genre === 'string').slice(0, 12)
+      : [],
+    genreIds: Array.isArray(value.genreIds)
+      ? value.genreIds.filter((id) => Number.isInteger(id)).slice(0, 12)
       : [],
     rating:
       typeof value.rating === 'number' && value.rating >= 0 && value.rating <= 10
@@ -88,20 +101,33 @@ export function fromSnapshot(value) {
   }
 }
 
+function parseSelections(list) {
+  if (!Array.isArray(list)) return []
+  const seen = new Set()
+  return list
+    .map(fromSnapshot)
+    .filter((title) => {
+      if (!title || seen.has(title.id)) return false
+      seen.add(title.id)
+      return true
+    })
+    .slice(0, MAX_PICKS)
+}
+
 export function serializeSession(session) {
   return JSON.stringify({
-    person1: toSnapshot(session.person1.selectedMovie),
-    person2: toSnapshot(session.person2.selectedMovie),
+    person1: session.person1.selections.map(toSnapshot),
+    person2: session.person2.selections.map(toSnapshot),
   })
 }
 
 export function parseSession(raw) {
   try {
     const data = JSON.parse(raw)
-    const first = fromSnapshot(data?.person1)
+    const first = parseSelections(data?.person1)
     // A Pessoa 2 só conta se a Pessoa 1 também escolheu
-    const second = first ? fromSnapshot(data?.person2) : null
-    return { person1: { selectedMovie: first }, person2: { selectedMovie: second } }
+    const second = first.length > 0 ? parseSelections(data?.person2) : []
+    return { person1: { selections: first }, person2: { selections: second } }
   } catch {
     return initialSession
   }

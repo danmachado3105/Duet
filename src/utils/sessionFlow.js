@@ -4,6 +4,7 @@ export const ROUTES = {
   person1: '/sessao/pessoa-1',
   handoff: '/sessao/passar',
   person2: '/sessao/pessoa-2',
+  summary: '/sessao/resumo',
   analysis: '/sessao/analise',
   result: '/sessao/resultado',
 }
@@ -11,6 +12,7 @@ export const ROUTES = {
 export const FLOW_STEPS = [
   { id: 'pessoa-1', label: 'Pessoa 1' },
   { id: 'pessoa-2', label: 'Pessoa 2' },
+  { id: 'resumo', label: 'Resumo' },
   { id: 'analise', label: 'Análise' },
 ]
 
@@ -22,10 +24,12 @@ export function stepIndexFor(pathname) {
     case ROUTES.handoff:
     case ROUTES.person2:
       return 1
-    case ROUTES.analysis:
+    case ROUTES.summary:
       return 2
-    case ROUTES.result:
+    case ROUTES.analysis:
       return 3
+    case ROUTES.result:
+      return 4
     default:
       return -1
   }
@@ -33,7 +37,7 @@ export function stepIndexFor(pathname) {
 
 // Para onde "Continuar sessão anterior" deve levar
 export function getResumeRoute(progress) {
-  if (progress.second) return ROUTES.analysis
+  if (progress.second) return ROUTES.summary
   if (progress.first) return ROUTES.handoff
   return ROUTES.person1
 }

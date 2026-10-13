@@ -8,7 +8,7 @@ import {
   sessionReducer,
 } from '../utils/sessionState.js'
 
-// Estado único da sessão. Hoje vive no navegador (localStorage, só com ids).
+// Estado único da sessão. Hoje vive no navegador (localStorage, só com um resumo dos títulos).
 // Para trocar por backend, só este arquivo e o sessionState.js precisam mudar.
 export default function SessionProvider({ children }) {
   const [session, dispatch] = useReducer(sessionReducer, undefined, loadSession)
@@ -21,13 +21,14 @@ export default function SessionProvider({ children }) {
     }
   }, [session])
 
-  const selectMovie = useCallback(
-    (person, movie) => dispatch({ type: 'select', person: personKey(person), movie }),
+  // person: 1 | 2 · selections: lista completa de títulos daquela pessoa
+  const setSelections = useCallback(
+    (person, selections) => dispatch({ type: 'set', person: personKey(person), selections }),
     [],
   )
   const reset = useCallback(() => dispatch({ type: 'reset' }), [])
 
-  const value = useMemo(() => ({ session, selectMovie, reset }), [session, selectMovie, reset])
+  const value = useMemo(() => ({ session, setSelections, reset }), [session, setSelections, reset])
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
 }
