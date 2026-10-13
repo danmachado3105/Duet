@@ -3,7 +3,7 @@ import CatalogMessage from './CatalogMessage.jsx'
 import MovieCard from './MovieCard.jsx'
 import MovieGridSkeleton from './MovieGridSkeleton.jsx'
 
-export default function MovieGrid({ catalog, selectedId, onOpen }) {
+export default function MovieGrid({ catalog, pickedIds, limitReached, onOpen, onToggle }) {
   const { status, error, items, query, hasFilters, hasMore, loadingMore, moreError } = catalog
 
   if (status === 'loading') {
@@ -56,8 +56,10 @@ export default function MovieGrid({ catalog, selectedId, onOpen }) {
               key={movie.id}
               movie={movie}
               index={index}
-              selected={movie.id === selectedId}
+              selected={pickedIds.has(movie.id)}
+              disabled={limitReached}
               onOpen={onOpen}
+              onToggle={onToggle}
             />
           ))}
         </ul>
