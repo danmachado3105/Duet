@@ -1180,3 +1180,287 @@
     gap: var(--space-4);
   }
 }
+
+/* ---------- Pôsteres reais na landing ---------- */
+.dpick .pimg,
+.dpick .poster,
+.rec .pimg,
+.rec .poster {
+  width: 56px;
+  flex-shrink: 0;
+}
+
+.dpick .pimg__year,
+.dpick .pimg__title,
+.dpick .poster__year,
+.dpick .poster__title,
+.rec .pimg__year,
+.rec .pimg__title,
+.rec .poster__year,
+.rec .poster__title {
+  display: none;
+}
+
+.dpick:hover .pimg,
+.dpick:hover .poster {
+  transform: translateY(-3px) rotate(-3deg);
+}
+
+.result .pimg {
+  width: 100%;
+}
+
+.flow .pimg {
+  width: var(--flow-poster);
+}
+
+.sv .pimg,
+.sv .poster {
+  width: 78px;
+}
+
+.rail__step:hover .pimg {
+  transform: translateY(-4px);
+}
+
+.demo__caption {
+  font-size: 0.72rem;
+  color: var(--text-2);
+}
+
+/* Enquanto a TMDB responde, os textos da vitrine viram esqueletos */
+[data-loading='true']
+  :is(
+    .dpick__title,
+    .dpick__meta,
+    .result__title,
+    .result__number,
+    .result__unit,
+    .tags li,
+    .person__name strong,
+    .person__name span,
+    .rec__title,
+    .rec__note,
+    .rec__score,
+    .sv--ranking li > span:first-child,
+    .sv--ranking b
+  ) {
+  background: linear-gradient(110deg, var(--ink-800) 30%, #26221f 50%, var(--ink-800) 70%);
+  background-size: 200% 100%;
+  border-radius: 6px;
+  color: transparent !important;
+  user-select: none;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* ---------- Explore o catálogo ---------- */
+.explore {
+  border-block: 1px solid var(--line);
+}
+
+.cats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+
+.cat {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  height: 100%;
+  padding: var(--space-6);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  transition: border-color 0.3s var(--ease), background-color 0.3s var(--ease);
+}
+
+.cat__posters {
+  display: flex;
+  flex: 0 0 46%;
+  max-width: 240px;
+}
+
+.cat__poster {
+  position: relative;
+  z-index: calc(var(--i) + 1);
+  width: 46%;
+  margin-left: -23%;
+  transition: transform 0.45s var(--ease);
+}
+
+.cat__poster:first-child {
+  margin-left: 0;
+}
+
+.cat__poster .pimg,
+.cat__poster .poster {
+  width: 100%;
+}
+
+.cat__poster .pimg__year,
+.cat__poster .pimg__title,
+.cat__poster .poster__year,
+.cat__poster .poster__title {
+  display: none;
+}
+
+.cat__body {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.cat__label {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  line-height: 1;
+}
+
+.cat__text {
+  font-size: 0.95rem;
+  color: var(--text-2);
+}
+
+.cat__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.cat__cta svg {
+  transition: transform 0.3s var(--ease);
+}
+
+/* Hover só em dispositivos que têm hover (no celular o toque não "gruda") */
+@media (hover: hover) {
+  .cat:hover {
+    border-color: var(--accent);
+    background: var(--surface-2);
+  }
+
+  .cat:hover .cat__poster {
+    transform: translateY(calc(var(--i) * -4px - 6px));
+  }
+
+  .cat:hover .cat__cta svg {
+    transform: translateX(4px);
+  }
+}
+
+.explore__note {
+  margin-top: var(--space-6);
+  font-size: 0.8rem;
+  color: var(--text-2);
+}
+
+@media (min-width: 640px) {
+  .cat__posters {
+    flex-basis: 36%;
+  }
+}
+
+@media (min-width: 960px) {
+  .cats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .cat {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cat__posters {
+    flex: none;
+    width: 100%;
+    max-width: none;
+  }
+
+  .cat__poster {
+    width: 38%;
+    margin-left: -10%;
+  }
+}
+
+/* ---------- Diferenciais ---------- */
+.diff {
+  border-block: 1px solid var(--line);
+}
+
+.crit__n {
+  display: block;
+  margin-bottom: var(--space-4);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: var(--accent);
+}
+
+@media (min-width: 640px) {
+  .criteria--four {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 960px) {
+  .criteria--four {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1100px) {
+  .criteria--four {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ---------- Etapas "em breve" ---------- */
+.rail__soon {
+  display: inline-block;
+  margin-left: var(--space-2);
+  padding: 2px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+/* ---------- Rodapé ---------- */
+.footer__heading {
+  margin-bottom: var(--space-2);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.footer__credit {
+  max-width: 44rem;
+  margin-top: var(--space-4);
+  font-size: 0.75rem;
+  color: var(--text-2);
+}
+
+.footer__credit a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.footer__credit a:hover {
+  color: var(--text);
+}
+
+@media (min-width: 768px) {
+  .footer__top {
+    grid-template-columns: 1fr auto auto;
+    gap: var(--space-16);
+  }
+}
