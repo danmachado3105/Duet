@@ -11,7 +11,7 @@ export default function HowItWorks() {
           <Reveal>
             <span className="eyebrow">Como funciona</span>
             <h2 className="section-title">
-              Dois filmes entram.
+              Dois títulos entram.
               <br />
               Uma escolha sai.
             </h2>
@@ -28,7 +28,10 @@ export default function HowItWorks() {
               <div className="rail__visual">
                 <StepVisual type={step.visual} />
               </div>
-              <span className="rail__number">{step.number}</span>
+              <span className="rail__number">
+                {step.number}
+                {step.soon && <span className="rail__soon">Em breve</span>}
+              </span>
               <h3 className="rail__title">{step.title}</h3>
               <p className="rail__text">{step.text}</p>
             </Reveal>

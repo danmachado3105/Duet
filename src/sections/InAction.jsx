@@ -7,10 +7,9 @@ export default function InAction() {
       <div className="container action__grid">
         <Reveal>
           <span className="eyebrow">DUET em ação</span>
-          <h2 className="section-title">É assim que acontece.</h2>
+          <h2 className="section-title">É assim que vai acontecer.</h2>
           <p className="lead">
-            Uma sala para os dois, escolhas lado a lado e recomendações ordenadas por
-            compatibilidade.
+            Uma prévia da tela da sessão: as escolhas de cada um e as recomendações para os dois.
           </p>
           <ol className="legend">
             <li>
@@ -22,14 +21,17 @@ export default function InAction() {
             </li>
             <li>
               <b>3</b>
-              As recomendações, da mais compatível à menos
+              As recomendações (em breve)
             </li>
           </ol>
         </Reveal>
 
         <Reveal delay={120}>
           <SessionMock />
-          <p className="action__caption">Prévia ilustrativa da futura tela.</p>
+          <p className="action__caption">
+            Prévia ilustrativa da futura tela. Recomendações e votação ainda estão em
+            desenvolvimento.
+          </p>
         </Reveal>
       </div>
     </section>
