@@ -1,24 +1,32 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import Button from '../components/Button.jsx'
 import VennMark from '../components/VennMark.jsx'
 import { useSession } from '../context/sessionContext.js'
+import { categoryFromSlug } from '../utils/categories.js'
 import { getProgress } from '../utils/sessionState.js'
 import { ROUTES, getResumeRoute } from '../utils/sessionFlow.js'
 
 export default function NewSessionPage() {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const { session, reset } = useSession()
   const progress = getProgress(session)
 
+  // Vem da landing: /sessao/nova?categoria=animacoes. O catálogo abre já nessa categoria.
+  const category = categoryFromSlug(params.get('categoria'))
+  const search = category ? `?categoria=${category.slug}` : ''
+
   const start = () => {
     reset()
-    navigate(ROUTES.person1)
+    navigate(`${ROUTES.person1}${search}`)
   }
 
   return (
     <section className="container newsession">
       <div className="newsession__copy stagger">
-        <span className="eyebrow">Nova sessão</span>
+        <span className="eyebrow">
+          Nova sessão{category ? ` · ${category.label}` : ''}
+        </span>
         <h1 className="newsession__title">Vamos encontrar algo para vocês.</h1>
         <p className="lead">Cada pessoa escolhe um título. O DUET cuida do resto.</p>
         <p className="newsession__explain">

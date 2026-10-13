@@ -11,6 +11,7 @@ import { useCatalog } from '../hooks/useCatalog.js'
 import { useSession } from '../context/sessionContext.js'
 import { personKey } from '../utils/sessionState.js'
 import { ROUTES } from '../utils/sessionFlow.js'
+import { categoryFromSlug } from '../utils/categories.js'
 
 const COPY = {
   1: {
@@ -45,7 +46,9 @@ export default function PickMoviePage({ person }) {
   // `pending` = seleção temporária no catálogo. A escolha confirmada só entra na sessão em `confirm`.
   const [pending, setPending] = useState(session[personKey(person)].selectedMovie)
   const [detail, setDetail] = useState(null)
-  const catalog = useCatalog()
+  const search = location.search
+  const initialType = categoryFromSlug(new URLSearchParams(search).get('categoria'))?.id
+  const catalog = useCatalog({ initialType })
 
   const choose = (movie) => {
     setPending(movie)
@@ -56,7 +59,7 @@ export default function PickMoviePage({ person }) {
     if (!pending) return
     selectMovie(person, pending)
     // replace: o botão "voltar" não leva de volta à tela de escolha
-    navigate(returnTo ?? copy.next, { replace: true })
+    navigate(`${returnTo ?? copy.next}${search}`, { replace: true })
   }
 
   return (
