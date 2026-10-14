@@ -50,7 +50,8 @@ export default function Footer() {
           <a href="https://www.themoviedb.org" target="_blank" rel="noreferrer">
             TMDB
           </a>
-          . Este produto usa a API da TMDB, mas não é endossado nem certificado por ela.
+          . Este produto usa a API da TMDB, mas não é endossado nem certificado por ela. Dados de
+          disponibilidade fornecidos por JustWatch.
         </p>
       </div>
     </footer>
