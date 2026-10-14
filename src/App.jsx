@@ -3,6 +3,7 @@ import LandingPage from './pages/LandingPage.jsx'
 import NewSessionPage from './pages/NewSessionPage.jsx'
 import PickMoviePage from './pages/PickMoviePage.jsx'
 import HandoffPage from './pages/HandoffPage.jsx'
+import SummaryPage from './pages/SummaryPage.jsx'
 import AnalysisPage from './pages/AnalysisPage.jsx'
 import ResultPage from './pages/ResultPage.jsx'
 import SessionProvider from './context/SessionProvider.jsx'
@@ -41,6 +42,14 @@ export default function App() {
             element={
               <RequireStep needs="first">
                 <PickMoviePage person={2} />
+              </RequireStep>
+            }
+          />
+          <Route
+            path="resumo"
+            element={
+              <RequireStep needs="both">
+                <SummaryPage />
               </RequireStep>
             }
           />
