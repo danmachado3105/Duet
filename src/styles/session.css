@@ -726,6 +726,14 @@
   box-shadow: 0 30px 50px -20px rgba(0, 0, 0, 0.9);
 }
 
+.mcard__btn:active .poster {
+  transform: scale(0.98);
+}
+
+.mcard__btn:hover .pimg img {
+  transform: scale(1.035);
+}
+
 .mcard[data-selected='true'] .poster {
   outline: 2px solid var(--person);
   outline-offset: 3px;
@@ -1109,7 +1117,7 @@
 .pimg[data-status='loading'] {
   background: linear-gradient(110deg, var(--ink-800) 30%, #26221f 50%, var(--ink-800) 70%);
   background-size: 200% 100%;
-  animation: shimmer 1.4s linear infinite;
+  animation: shimmer 1.4s linear 1;
 }
 
 @keyframes shimmer {
@@ -1319,6 +1327,14 @@
 .mcard__toggle:hover:not(:disabled) {
   border-color: var(--person);
   transform: scale(1.08);
+}
+
+.mcard__toggle:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.mcard__toggle:focus-visible {
+  outline-offset: 4px;
 }
 
 .mcard__toggle[aria-pressed='true'] {
@@ -1595,6 +1611,31 @@
   display: grid;
   gap: clamp(var(--space-12), 6vw, var(--space-20));
   padding-block: clamp(var(--space-8), 5vw, var(--space-16));
+  animation: rise 0.42s var(--ease) both;
+}
+
+.resp > *:not(.resp__head) {
+  animation: rise 0.42s var(--ease) both;
+}
+
+.resp > *:nth-child(2) {
+  animation-delay: 70ms;
+}
+
+.resp > *:nth-child(3) {
+  animation-delay: 130ms;
+}
+
+.resp > *:nth-child(4) {
+  animation-delay: 190ms;
+}
+
+.resp > *:nth-child(5) {
+  animation-delay: 250ms;
+}
+
+.resp > *:nth-child(6) {
+  animation-delay: 310ms;
 }
 
 .resp__head {
@@ -1730,6 +1771,13 @@
   color: var(--text-2);
 }
 
+.together__titles {
+  padding: var(--space-4);
+  border-left: 2px solid var(--accent);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: linear-gradient(90deg, rgba(239, 106, 82, 0.08), transparent);
+}
+
 .together__posters {
   display: flex;
   flex-wrap: wrap;
@@ -1771,8 +1819,8 @@
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--surface);
-  animation: rise 0.5s var(--ease) backwards;
-  animation-delay: calc(var(--i, 0) * 70ms);
+  animation: rise 0.42s var(--ease) backwards;
+  animation-delay: calc(var(--i, 0) * 45ms);
   transition: border-color 0.3s var(--ease);
 }
 
@@ -1862,6 +1910,19 @@
   font-size: 2rem;
   font-weight: 400;
   color: var(--text);
+  animation: score-emphasis 0.5s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 45ms + 100ms);
+}
+
+@keyframes score-emphasis {
+  from {
+    opacity: 0.6;
+    transform: translateY(5px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .rcard .meter {
@@ -1871,6 +1932,7 @@
 .rcard .meter__fill {
   width: var(--w);
   animation: grow 0.9s var(--ease) backwards;
+  animation-delay: calc(var(--i, 0) * 45ms + 100ms);
 }
 
 .rcard__reasons {
@@ -1971,6 +2033,10 @@
 
 .rcard__body > .btn {
   min-height: 44px;
+}
+
+.together__posters .pimg {
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
 }
 
 @media (max-width: 559px) {
