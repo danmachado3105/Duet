@@ -32,7 +32,7 @@
   font: 600 0.95rem/1 var(--font-body);
   cursor: pointer;
   transition: background-color 0.25s var(--ease), border-color 0.25s var(--ease),
-    transform 0.25s var(--ease);
+    box-shadow 0.25s var(--ease), transform 0.2s var(--ease), filter 0.25s var(--ease);
 }
 
 .btn:hover {
@@ -40,7 +40,11 @@
 }
 
 .btn:active {
-  transform: none;
+  transform: translateY(1px) scale(0.98);
+}
+
+.btn:focus-visible {
+  box-shadow: 0 0 0 4px rgba(239, 106, 82, 0.2);
 }
 
 .btn--sm {
@@ -115,12 +119,26 @@
   transition: color 0.25s var(--ease), letter-spacing 0.25s var(--ease);
 }
 
-.logo:hover .logo__mark {
+.logo__mark > circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.3s var(--ease), stroke 0.25s var(--ease);
+}
+
+.logo:is(:hover, :focus-visible) .logo__mark {
   color: var(--accent);
   transform: translateX(2px) scale(1.04);
 }
 
-.logo:hover .logo__word {
+.logo:is(:hover, :focus-visible) .logo__mark > circle:first-of-type {
+  transform: translateX(-1px);
+}
+
+.logo:is(:hover, :focus-visible) .logo__mark > circle:last-of-type {
+  transform: translateX(1px);
+}
+
+.logo:is(:hover, :focus-visible) .logo__word {
   color: #fff;
   letter-spacing: 0.1em;
 }
@@ -361,6 +379,11 @@
   color: var(--text);
 }
 
+.navbar__links a:active,
+.menu__links a:active {
+  color: var(--accent);
+}
+
 .navbar__links a:hover::after {
   transform: scaleX(1);
 }
@@ -549,7 +572,7 @@
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
-  animation: pulse 2s ease-in-out infinite;
+  animation: pulse 0.9s ease-out 1 both;
 }
 
 @keyframes pulse {
@@ -1033,21 +1056,36 @@
   background: var(--ink-900);
   color: var(--text);
   box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  transform: translateY(10px) scale(0.99);
+  transition: opacity 0.22s var(--ease), transform 0.22s var(--ease),
+    display 0.22s allow-discrete;
 }
 
 .dialog::backdrop {
   background: rgba(8, 7, 6, 0.78);
+  opacity: 0;
+  transition: opacity 0.22s var(--ease);
 }
 
 .dialog[open] {
-  animation: dialog-in 0.3s var(--ease);
+  opacity: 1;
+  transform: none;
 }
 
-@keyframes dialog-in {
-  from {
+@starting-style {
+  .dialog[open] {
     opacity: 0;
-    transform: translateY(12px) scale(0.98);
+    transform: translateY(10px) scale(0.99);
   }
+
+  .dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+.dialog[open]::backdrop {
+  opacity: 1;
 }
 
 .dialog__close {

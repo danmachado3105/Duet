@@ -616,7 +616,7 @@
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
-  animation: pulse 2s ease-in-out infinite;
+  animation: pulse 0.9s ease-out 1 both;
 }
 
 .app__section {
@@ -1272,7 +1272,7 @@
   border-radius: 6px;
   color: transparent !important;
   user-select: none;
-  animation: shimmer 1.4s linear infinite;
+  animation: shimmer 1.4s linear 1;
 }
 
 /* ---------- Explore o catálogo ---------- */
@@ -1295,7 +1295,8 @@
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--surface);
-  transition: border-color 0.3s var(--ease), background-color 0.3s var(--ease);
+  transition: border-color 0.3s var(--ease), background-color 0.3s var(--ease),
+    box-shadow 0.3s var(--ease), transform 0.3s var(--ease);
 }
 
 .cat__posters {
@@ -1319,6 +1320,10 @@
 .cat__poster .pimg,
 .cat__poster .poster {
   width: 100%;
+}
+
+.cat__poster .pimg img {
+  transition: opacity 0.45s var(--ease), transform 0.45s var(--ease);
 }
 
 .cat__poster .pimg__year,
@@ -1359,11 +1364,23 @@
   transition: transform 0.3s var(--ease);
 }
 
+.cat:focus-visible {
+  outline-offset: 5px;
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+
+.cat:active {
+  transform: scale(0.99);
+}
+
 /* Hover só em dispositivos que têm hover (no celular o toque não "gruda") */
 @media (hover: hover) {
   .cat:hover {
     border-color: var(--accent);
     background: var(--surface-2);
+    box-shadow: 0 18px 36px -28px rgba(239, 106, 82, 0.4);
+    transform: translateY(-2px);
   }
 
   .cat:hover .cat__poster {
@@ -1372,6 +1389,10 @@
 
   .cat:hover .cat__cta svg {
     transform: translateX(4px);
+  }
+
+  .cat:hover .cat__poster .pimg img {
+    transform: scale(1.035);
   }
 }
 
