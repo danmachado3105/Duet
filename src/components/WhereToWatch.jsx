@@ -78,17 +78,6 @@ export default function WhereToWatch({ data, status, retry, compact = false }) {
         </div>
       )}
 
-      {!compact && status === 'success' && data?.link && (
-        <a
-          className="where-watch__link"
-          href={data.link}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Ver opções no TMDB
-        </a>
-      )}
-
       {!compact && (
         <p className="where-watch__credit">Disponibilidade fornecida por JustWatch via TMDB.</p>
       )}

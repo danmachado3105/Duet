@@ -1,6 +1,6 @@
 .where-watch {
   min-width: 0;
-  padding-top: var(--space-4);
+  padding-top: var(--space-3);
   border-top: 1px solid var(--line);
 }
 
@@ -12,8 +12,9 @@
 }
 
 .where-watch__heading h3 {
-  font-size: 0.92rem;
+  font-size: 1.05rem;
   font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .where-watch__heading > span {
@@ -37,13 +38,13 @@
 
 .where-watch__groups {
   display: grid;
-  gap: var(--space-3);
-  margin-top: var(--space-3);
+  gap: var(--space-1);
+  margin-top: var(--space-2);
 }
 
 .where-watch__group h4 {
-  margin-bottom: var(--space-2);
-  font-size: 0.67rem;
+  margin-bottom: var(--space-1);
+  font-size: 0.7rem;
   font-weight: 500;
   letter-spacing: 0.08em;
   color: var(--text-2);
@@ -82,23 +83,8 @@
   color: var(--text-2);
 }
 
-.where-watch__link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 40px;
-  margin-top: var(--space-3);
-  color: var(--accent);
-  font-size: 0.78rem;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.where-watch__link:hover {
-  color: var(--text);
-}
-
 .where-watch__credit {
-  margin-top: var(--space-2);
+  margin-top: var(--space-1);
   font-size: 0.65rem;
   line-height: 1.4;
   color: var(--text-2);
@@ -110,7 +96,7 @@
 }
 
 .where-watch--compact .where-watch__heading h3 {
-  font-size: 0.75rem;
+  font-size: 0.82rem;
 }
 
 .where-watch--compact .where-watch__message {
@@ -118,8 +104,8 @@
 }
 
 .where-watch--compact .where-watch__groups {
-  gap: var(--space-2);
-  margin-top: var(--space-2);
+  gap: var(--space-1);
+  margin-top: var(--space-1);
 }
 
 .where-watch--compact .where-watch__group {
