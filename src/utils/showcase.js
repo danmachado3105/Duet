@@ -1,6 +1,5 @@
 // Monta a "vitrine" da landing a partir de listas de títulos (da TMDB ou de demonstração).
 // A pontuação é ILUSTRATIVA: serve só para a demonstração visual. O algoritmo real vem depois.
-export const SESSION_CODE = 'K7P-2X'
 
 export const SCAN = [
   { label: 'Gêneros', width: '92%' },

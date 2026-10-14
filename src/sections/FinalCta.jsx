@@ -22,10 +22,6 @@ export default function FinalCta() {
               <p className="ticket__slogan">Dois gostos. Uma escolha.</p>
               <dl className="ticket__meta">
                 <div>
-                  <dt>Sessão</dt>
-                  <dd>K7P-2X</dd>
-                </div>
-                <div>
                   <dt>Filme</dt>
                   <dd>A decidir</dd>
                 </div>

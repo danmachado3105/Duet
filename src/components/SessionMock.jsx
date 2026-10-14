@@ -1,7 +1,6 @@
 import PosterImage from './PosterImage.jsx'
 import { CheckIcon } from './Icons.jsx'
 import { useShowcase } from '../context/showcaseContext.js'
-import { SESSION_CODE } from '../utils/showcase.js'
 
 export default function SessionMock() {
   const { data } = useShowcase()
@@ -10,12 +9,10 @@ export default function SessionMock() {
   return (
     <div className="app" role="group" aria-label="Exemplo ilustrativo de uma sessão do DUET">
       <div className="app__bar">
-        <span>
-          Sessão <strong>{SESSION_CODE}</strong>
-        </span>
+        <strong>DUET · PRÉVIA</strong>
         <span className="app__live">
           <i aria-hidden="true" />
-          Em andamento
+          Exemplo
         </span>
       </div>
 

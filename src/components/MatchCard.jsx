@@ -2,7 +2,6 @@ import { useId } from 'react'
 import PosterImage from './PosterImage.jsx'
 import { PlayIcon } from './Icons.jsx'
 import { useShowcase } from '../context/showcaseContext.js'
-import { SESSION_CODE } from '../utils/showcase.js'
 import { useDemoSteps, TOTAL_MS } from '../hooks/useDemoSteps.js'
 import { useCountUp } from '../hooks/useCountUp.js'
 import { useTilt } from '../hooks/useTilt.js'
@@ -43,7 +42,7 @@ export default function MatchCard() {
       <div className="demo__bar">
         <span className="demo__session">
           <span className="demo__dot" aria-hidden="true" />
-          Sessão <strong>{SESSION_CODE}</strong>
+          Demonstração
         </span>
         <span className="demo__people" aria-hidden="true">
           {pair.map((person) => (
