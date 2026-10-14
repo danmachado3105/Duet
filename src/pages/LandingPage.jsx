@@ -1,4 +1,3 @@
-import SessionDialogProvider from '../context/SessionDialogProvider.jsx'
 import ShowcaseProvider from '../context/ShowcaseProvider.jsx'
 import { useShowcase } from '../context/showcaseContext.js'
 import Navbar from '../components/Navbar.jsx'
@@ -37,10 +36,8 @@ function LandingContent() {
 
 export default function LandingPage() {
   return (
-    <SessionDialogProvider>
-      <ShowcaseProvider>
-        <LandingContent />
-      </ShowcaseProvider>
-    </SessionDialogProvider>
+    <ShowcaseProvider>
+      <LandingContent />
+    </ShowcaseProvider>
   )
 }

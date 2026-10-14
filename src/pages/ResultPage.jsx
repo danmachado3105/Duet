@@ -1,57 +1,190 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/Button.jsx'
+import CatalogMessage from '../components/CatalogMessage.jsx'
+import CompatRule from '../components/CompatRule.jsx'
+import MovieDetails from '../components/MovieDetails.jsx'
 import PosterImage from '../components/PosterImage.jsx'
-import TransitionScreen from '../components/TransitionScreen.jsx'
+import PreferenceCard from '../components/PreferenceCard.jsx'
+import RecommendationCard from '../components/RecommendationCard.jsx'
 import { useSession } from '../context/sessionContext.js'
+import { useCompatibility } from '../hooks/useCompatibility.js'
+import { RESULTS_ERROR_FALLBACK } from '../utils/compat.js'
 import { ROUTES } from '../utils/sessionFlow.js'
 
-// Placeholder: o resultado real (recomendações e votação) é a próxima etapa.
+function ResultLoading() {
+  return (
+    <section className="container resp" aria-busy="true">
+      <div className="resp__head">
+        <span className="eyebrow">Resultado</span>
+        <h1 className="resp__title">Montando as sugestões...</h1>
+        <p className="lead" role="status">
+          Estamos cruzando os gostos de vocês com o catálogo da TMDB.
+        </p>
+      </div>
+      <ul className="recs" aria-hidden="true">
+        {[0, 1, 2, 3].map((n) => (
+          <li key={n} className="rcard">
+            <span className="pimg" data-status="loading" />
+            <div className="rcard__body">
+              <span className="skeleton-line" />
+              <span className="skeleton-line skeleton-line--short" />
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
 export default function ResultPage() {
   const navigate = useNavigate()
-  const { session, reset } = useSession()
-  const first = session.person1.selectedMovie
-  const second = session.person2.selectedMovie
+  const { reset } = useSession()
+  const compat = useCompatibility()
+  const [detail, setDetail] = useState(null)
 
   const startOver = () => {
     reset()
-    navigate(ROUTES.person1)
+    navigate(ROUTES.newSession)
+  }
+
+  if (compat.status === 'loading') return <ResultLoading />
+
+  if (compat.status === 'error') {
+    return (
+      <section className="container resp">
+        <CatalogMessage
+          error={compat.error}
+          onRetry={compat.retry}
+          fallback={RESULTS_ERROR_FALLBACK}
+        />
+        <div className="resp__actions">
+          <Button to={ROUTES.summary} variant="ghost" size="lg">
+            Voltar ao resumo
+          </Button>
+        </div>
+      </section>
+    )
+  }
+
+  const { people, sharedTitles, sharedGenres, recommendations, mode, situation } = compat.data
+  const [first, second] = people
+  const hasRecs = recommendations.length > 0
+
+  let title = (
+    <>
+      Ainda não achamos o <em>meio-termo</em>.
+    </>
+  )
+  let lead = 'Nenhuma opção encontrada combina com os gêneros das duas pessoas. Tentem escolher mais títulos ou outros gêneros.'
+
+  if (hasRecs) {
+    title = (
+      <>
+        Vocês dois vão <em>gostar</em> destes.
+      </>
+    )
+    lead =
+      situation === 'split'
+        ? 'As escolhas de vocês não têm gêneros em comum. Por isso combinamos um gênero de cada pessoa para achar o meio-termo.'
+        : `Cruzamos ${first.count} ${first.count === 1 ? 'escolha' : 'escolhas'} da Pessoa 1 com ${second.count} da Pessoa 2 e priorizamos o que agrada às duas.`
+  } else if (mode === 'picks-only') {
+    title = (
+      <>
+        Comparamos as <em>escolhas</em>.
+      </>
+    )
+    lead = 'As sugestões usam a TMDB e não estão disponíveis com o catálogo de demonstração. Veja abaixo o que as escolhas têm em comum.'
   }
 
   return (
-    <TransitionScreen
-      eyebrow="Resultado"
-      title="O resultado chega na próxima etapa."
-      text="Por enquanto, estas são as duas escolhas. O DUET vai cruzar os gostos e sugerir opções para os dois."
-      actions={
-        <>
-          <Button size="lg" onClick={startOver}>
-            Começar outra sessão
-          </Button>
-          <Button to={ROUTES.home} variant="ghost" size="lg">
-            Voltar ao início
-          </Button>
-        </>
-      }
-    >
-      <div className="pair pair--static">
-        <div className="pair__item">
-          <PosterImage movie={first} sizes="160px" eager />
-          <p className="pair__cap">
-            <span>Pessoa 1</span>
-            <strong>{first.title}</strong>
-          </p>
-        </div>
-        <span className="pair__plus" aria-hidden="true">
-          +
-        </span>
-        <div className="pair__item">
-          <PosterImage movie={second} sizes="160px" eager />
-          <p className="pair__cap">
-            <span>Pessoa 2</span>
-            <strong>{second.title}</strong>
-          </p>
-        </div>
+    <section className="container resp">
+      <header className="resp__head stagger">
+        <span className="eyebrow">Resultado</span>
+        <h1 className="resp__title">{title}</h1>
+        <p className="lead">{lead}</p>
+      </header>
+
+      <div>
+        <h2 className="resp__h2">O que cada um prefere</h2>
+        <ul className="prefs">
+          <PreferenceCard person={first} tone="coral" />
+          <PreferenceCard person={second} tone="sand" />
+        </ul>
       </div>
-    </TransitionScreen>
+
+      <div className="together">
+        <h2 className="resp__h2">O que vocês têm em comum</h2>
+
+        {sharedTitles.length > 0 ? (
+          <div className="together__titles">
+            <p>Os dois escolheram:</p>
+            <ul className="together__posters">
+              {sharedTitles.map((item) => (
+                <li key={item.id}>
+                  <PosterImage movie={item} sizes="72px" />
+                  <span>{item.title}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <p className="together__none">Vocês não escolheram os mesmos títulos.</p>
+        )}
+
+        {sharedGenres.length > 0 ? (
+          <div>
+            <p className="together__label">Gêneros em comum</p>
+            <ul className="chips">
+              {sharedGenres.map((name) => (
+                <li key={name} className="chip chip--both">
+                  {name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <p className="together__none">As escolhas de vocês não têm nenhum gênero em comum.</p>
+        )}
+      </div>
+
+      {hasRecs ? (
+        <div>
+          <h2 className="resp__h2">Sugestões para os dois</h2>
+          <ul className="recs">
+            {recommendations.map((item, index) => (
+              <RecommendationCard
+                key={item.title.id}
+                item={item}
+                rank={index}
+                onOpen={setDetail}
+              />
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <p className="note-card">
+          {mode === 'picks-only'
+            ? 'Para receber sugestões, escolham títulos do catálogo da TMDB.'
+            : 'Alterar as escolhas costuma ajudar: com mais títulos de cada pessoa, o DUET tem mais pistas.'}
+        </p>
+      )}
+
+      {mode === 'tmdb' && <CompatRule />}
+
+      <div className="resp__actions">
+        <Button to={ROUTES.summary} variant="ghost" size="lg">
+          Alterar escolhas
+        </Button>
+        <Button size="lg" arrow onClick={startOver}>
+          Começar nova sessão
+        </Button>
+        <Button to={ROUTES.home} variant="ghost" size="lg">
+          Voltar ao início
+        </Button>
+      </div>
+
+      <MovieDetails movie={detail} readOnly onClose={() => setDetail(null)} />
+    </section>
   )
 }

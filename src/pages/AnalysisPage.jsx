@@ -1,31 +1,43 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import Button from '../components/Button.jsx'
-import PosterImage from '../components/PosterImage.jsx'
+import CatalogMessage from '../components/CatalogMessage.jsx'
+import Mosaic from '../components/Mosaic.jsx'
 import TransitionScreen from '../components/TransitionScreen.jsx'
 import VennMark from '../components/VennMark.jsx'
 import { useSession } from '../context/sessionContext.js'
+import { useCompatibility } from '../hooks/useCompatibility.js'
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion.js'
-import { analyzeSelection } from '../utils/analysis.js'
+import { RESULTS_ERROR_FALLBACK } from '../utils/compat.js'
 import { ROUTES } from '../utils/sessionFlow.js'
 
 export default function AnalysisPage() {
   const navigate = useNavigate()
   const reduced = usePrefersReducedMotion()
   const { session, reset } = useSession()
-  const [ready, setReady] = useState(false)
+  const compat = useCompatibility()
+  const [minTimePassed, setMinTimePassed] = useState(false)
 
-  // Aqui entra, no futuro, a chamada do algoritmo de recomendação.
+  // A análise é real (consulta a TMDB). O tempo mínimo só evita um "piscar" quando o cache responde na hora.
   useEffect(() => {
-    const timer = setTimeout(() => setReady(true), reduced ? 600 : 2200)
+    const timer = setTimeout(() => setMinTimePassed(true), reduced ? 500 : 1800)
     return () => clearTimeout(timer)
   }, [reduced])
 
-  const first = session.person1.selectedMovie
-  const second = session.person2.selectedMovie
-  if (!first || !second) return null
+  const first = session.person1.selections
+  const second = session.person2.selections
+  if (first.length === 0 || second.length === 0) return null
 
-  const analysis = analyzeSelection(first, second)
+  const ready = compat.status === 'ready' && minTimePassed
+  const failed = compat.status === 'error'
+
+  let status = 'DUET está analisando'
+  if (ready) {
+    const total = compat.data.recommendations.length
+    if (total > 0) status = `Encontramos ${total} ${total === 1 ? 'sugestão' : 'sugestões'} para os dois.`
+    else if (compat.data.mode === 'picks-only') status = 'Comparamos as escolhas de vocês.'
+    else status = 'Não encontramos um meio-termo claro. Vale ver o resultado.'
+  }
 
   const restart = () => {
     reset()
@@ -43,68 +55,60 @@ export default function AnalysisPage() {
               Ver resultado
             </Button>
           )}
+          <Button to={ROUTES.summary} variant="ghost" size="lg">
+            Voltar ao resumo
+          </Button>
           <Button variant="ghost" size="lg" onClick={restart}>
             Recomeçar
           </Button>
         </>
       }
     >
-      <div className="pair" data-state={ready ? 'ready' : 'working'}>
-        <div className="pair__item">
-          <PosterImage movie={first} sizes="160px" eager />
-          <p className="pair__cap">
-            <span>Pessoa 1</span>
-            <strong>{first.title}</strong>
+      {failed ? (
+        <CatalogMessage
+          error={compat.error}
+          onRetry={compat.retry}
+          fallback={RESULTS_ERROR_FALLBACK}
+        />
+      ) : (
+        <>
+          <div className="pair" data-state={ready ? 'ready' : 'working'}>
+            <div className="pair__item">
+              <Mosaic titles={first} />
+              <p className="pair__cap">
+                <span>Pessoa 1</span>
+                <strong>
+                  {first.length} {first.length === 1 ? 'título' : 'títulos'}
+                </strong>
+              </p>
+            </div>
+
+            <div className="pair__mark" aria-hidden="true">
+              <VennMark />
+            </div>
+
+            <div className="pair__item">
+              <Mosaic titles={second} />
+              <p className="pair__cap">
+                <span>Pessoa 2</span>
+                <strong>
+                  {second.length} {second.length === 1 ? 'título' : 'títulos'}
+                </strong>
+              </p>
+            </div>
+          </div>
+
+          <p className="pair__status" role="status">
+            {status}
+            {!ready && (
+              <span className="dots" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+              </span>
+            )}
           </p>
-          <Link to={ROUTES.person1} state={{ returnTo: ROUTES.analysis }} className="pair__edit">
-            Trocar<span className="sr-only"> escolha da Pessoa 1</span>
-          </Link>
-        </div>
-
-        <div className="pair__mark" aria-hidden="true">
-          <VennMark />
-        </div>
-
-        <div className="pair__item">
-          <PosterImage movie={second} sizes="160px" eager />
-          <p className="pair__cap">
-            <span>Pessoa 2</span>
-            <strong>{second.title}</strong>
-          </p>
-          <Link to={ROUTES.person2} state={{ returnTo: ROUTES.analysis }} className="pair__edit">
-            Trocar<span className="sr-only"> escolha da Pessoa 2</span>
-          </Link>
-        </div>
-      </div>
-
-      <p className="pair__status" role="status">
-        {ready ? 'Encontramos algumas possibilidades.' : 'DUET está analisando'}
-        {!ready && (
-          <span className="dots" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-          </span>
-        )}
-      </p>
-
-      {ready && (
-        <div className="common">
-          <span className="common__label">
-            {analysis.sameTitle ? 'Vocês escolheram o mesmo título' : 'Gêneros em comum'}
-          </span>
-          {analysis.sharedGenres.length > 0 ? (
-            <ul className="chips">
-              {analysis.sharedGenres.map((genre) => (
-                <li key={genre} className="chip chip--both">
-                  {genre}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>Nenhum por enquanto. O DUET vai procurar o meio-termo.</p>
-          )}
-        </div>
+        </>
       )}
     </TransitionScreen>
   )
