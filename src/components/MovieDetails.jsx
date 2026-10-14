@@ -7,6 +7,8 @@ import { backdropUrl } from '../services/tmdb.js'
 import { formatCertification, formatMinutes } from '../utils/catalog.js'
 import { useBackdropClose } from '../hooks/useBackdropClose.js'
 import { useTitleDetails } from '../hooks/useTitleDetails.js'
+import { useWatchProviders } from '../hooks/useWatchProviders.js'
+import WhereToWatch from './WhereToWatch.jsx'
 
 // Painel de detalhes: janela central no desktop, "bottom sheet" no celular.
 // readOnly: só mostra as informações (usado na tela de resultados).
@@ -22,6 +24,7 @@ export default function MovieDetails({
   const titleId = useId()
   const backdrop = useBackdropClose(onClose)
   const { item, status, retry } = useTitleDetails(movie)
+  const providers = useWatchProviders(movie, Boolean(movie))
 
   useEffect(() => {
     const dialog = ref.current
@@ -85,8 +88,13 @@ export default function MovieDetails({
             <CloseIcon size={20} />
           </button>
 
-          <div className="details__poster">
-            <PosterImage movie={item} sizes="200px" eager />
+          <div className="details__poster-column">
+            <div className="details__poster">
+              <PosterImage movie={item} sizes="200px" eager />
+            </div>
+            <div className="details__providers details__providers--desktop">
+              <WhereToWatch {...providers} />
+            </div>
           </div>
 
           <div className="details__body">
@@ -107,6 +115,10 @@ export default function MovieDetails({
                 </span>
               </p>
             )}
+
+            <div className="details__providers details__providers--mobile">
+              <WhereToWatch {...providers} />
+            </div>
 
             {item.genres.length > 0 && (
               <ul className="chips">

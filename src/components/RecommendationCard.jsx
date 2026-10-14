@@ -2,13 +2,18 @@ import Button from './Button.jsx'
 import PosterImage from './PosterImage.jsx'
 import { StarIcon } from './Icons.jsx'
 import { KIND_LABEL } from '../utils/compat.js'
+import { useInView } from '../hooks/useInView.js'
+import { useWatchProviders } from '../hooks/useWatchProviders.js'
+import WhereToWatch from './WhereToWatch.jsx'
 
 export default function RecommendationCard({ item, rank, onOpen }) {
   const { title, percent, kind, reasons } = item
   const meta = [title.year, title.genres.slice(0, 3).join(' · ')].filter(Boolean).join(' · ')
+  const [ref, inView] = useInView(0, '120px')
+  const providers = useWatchProviders(title, inView)
 
   return (
-    <li className="rcard" style={{ '--i': Math.min(rank, 8) }}>
+    <li className="rcard" ref={ref} style={{ '--i': Math.min(rank, 8) }}>
       <button
         type="button"
         className="rcard__poster"
@@ -41,6 +46,8 @@ export default function RecommendationCard({ item, rank, onOpen }) {
             </span>
           )}
         </p>
+
+        <WhereToWatch {...providers} compact />
 
         <div className="rcard__score">
           <p>
