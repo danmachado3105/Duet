@@ -7,7 +7,6 @@ import MovieDetails from '../components/MovieDetails.jsx'
 import PosterImage from '../components/PosterImage.jsx'
 import PreferenceCard from '../components/PreferenceCard.jsx'
 import RecommendationCard from '../components/RecommendationCard.jsx'
-import { useSession } from '../context/sessionContext.js'
 import { useCompatibility } from '../hooks/useCompatibility.js'
 import { RESULTS_ERROR_FALLBACK } from '../utils/compat.js'
 import { ROUTES } from '../utils/sessionFlow.js'
@@ -39,13 +38,11 @@ function ResultLoading() {
 
 export default function ResultPage() {
   const navigate = useNavigate()
-  const { reset } = useSession()
   const compat = useCompatibility()
   const [detail, setDetail] = useState(null)
 
   const startOver = () => {
-    reset()
-    navigate(ROUTES.newSession)
+    navigate(ROUTES.newSession, { state: { resetSession: true } })
   }
 
   if (compat.status === 'loading') return <ResultLoading />

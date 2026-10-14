@@ -1,4 +1,5 @@
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import Button from '../components/Button.jsx'
 import VennMark from '../components/VennMark.jsx'
 import { useSession } from '../context/sessionContext.js'
@@ -7,10 +8,20 @@ import { getProgress } from '../utils/sessionState.js'
 import { ROUTES, getResumeRoute } from '../utils/sessionFlow.js'
 
 export default function NewSessionPage() {
+  const location = useLocation()
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const { session, reset } = useSession()
+  const resetHandled = useRef(false)
   const progress = getProgress(session)
+  const resetting = location.state?.resetSession === true
+
+  useEffect(() => {
+    if (!resetting || resetHandled.current) return
+    resetHandled.current = true
+    reset()
+    navigate(`${location.pathname}${location.search}`, { replace: true, state: null })
+  }, [location.pathname, location.search, navigate, reset, resetting])
 
   // Vem da landing: /sessao/nova?categoria=animacoes. O catálogo abre já nessa categoria.
   const category = categoryFromSlug(params.get('categoria'))
@@ -50,7 +61,7 @@ export default function NewSessionPage() {
           <Button size="lg" arrow onClick={start}>
             Começar
           </Button>
-          {progress.first && (
+          {progress.first && !resetting && (
             <Button variant="ghost" size="lg" to={getResumeRoute(progress)}>
               Continuar sessão anterior
             </Button>
