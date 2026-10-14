@@ -21,14 +21,15 @@ const MESSAGES = {
   },
 }
 
-const FALLBACK = {
+const DEFAULT_FALLBACK = {
   title: 'Não foi possível carregar o catálogo.',
   text: 'Algo deu errado ao falar com a TMDB. Tente novamente.',
 }
 
-export default function CatalogMessage({ error, onRetry, onUseDemo }) {
+// onUseDemo é opcional: sem ele, o botão do catálogo de demonstração não aparece
+export default function CatalogMessage({ error, onRetry, onUseDemo, fallback = DEFAULT_FALLBACK }) {
   const code = error?.code
-  const message = MESSAGES[code] ?? FALLBACK
+  const message = MESSAGES[code] ?? fallback
 
   return (
     <div className="empty" role="alert">
@@ -40,7 +41,9 @@ export default function CatalogMessage({ error, onRetry, onUseDemo }) {
             Tentar novamente
           </Button>
         )}
-        {message.config && <Button onClick={onUseDemo}>Usar catálogo de demonstração</Button>}
+        {message.config && onUseDemo && (
+          <Button onClick={onUseDemo}>Usar catálogo de demonstração</Button>
+        )}
       </div>
     </div>
   )
