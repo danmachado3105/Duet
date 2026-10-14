@@ -10,6 +10,7 @@ const MIN_VOTES = 5 // abaixo disso a nota não é confiável e não é exibida
 
 const DEFAULT_IMAGES = {
   baseUrl: 'https://image.tmdb.org/t/p/',
+  logoSizes: ['w45', 'w92', 'w154', 'w185', 'w300', 'w500', 'original'],
   posterSizes: ['w92', 'w154', 'w185', 'w342', 'w500', 'w780', 'original'],
   backdropSizes: ['w300', 'w780', 'w1280', 'original'],
 }
@@ -93,6 +94,7 @@ export function loadImageConfig() {
         if (images?.secure_base_url) {
           imageConfig = {
             baseUrl: images.secure_base_url,
+            logoSizes: images.logo_sizes ?? DEFAULT_IMAGES.logoSizes,
             posterSizes: images.poster_sizes ?? DEFAULT_IMAGES.posterSizes,
             backdropSizes: images.backdrop_sizes ?? DEFAULT_IMAGES.backdropSizes,
           }
@@ -122,6 +124,12 @@ export function posterSources(path) {
     src: url('w342'),
     srcSet: `${url('w185')} 185w, ${url('w342')} 342w, ${url('w500')} 500w`,
   }
+}
+
+export function providerLogoUrl(path) {
+  if (!path) return null
+  const { baseUrl, logoSizes } = imageConfig
+  return `${baseUrl}${pickSize(logoSizes, 'w92')}${path}`
 }
 
 export function backdropUrl(path) {
@@ -339,6 +347,93 @@ export async function getDetails(mediaType, tmdbId) {
     synopsisLanguage,
     backdropPath: data.backdrop_path || null,
   }
+}
+
+// Watch Providers usa os ids e os tipos reais do catálogo (filme ou série).
+const watchProviderCache = new Map()
+const watchProviderQueue = []
+let activeWatchProviderRequests = 0
+const MAX_WATCH_PROVIDER_REQUESTS = 2
+
+function runNextWatchProviderRequest() {
+  if (activeWatchProviderRequests >= MAX_WATCH_PROVIDER_REQUESTS) return
+  const next = watchProviderQueue.shift()
+  if (!next) return
+
+  activeWatchProviderRequests += 1
+  next.task()
+    .then(next.resolve, next.reject)
+    .finally(() => {
+      activeWatchProviderRequests -= 1
+      runNextWatchProviderRequest()
+    })
+}
+
+function enqueueWatchProviderRequest(task) {
+  const promise = new Promise((resolve, reject) => {
+    watchProviderQueue.push({ task, resolve, reject })
+  })
+  runNextWatchProviderRequest()
+  return promise
+}
+
+function normalizeProviders(data) {
+  const region = data.results?.[REGION]
+  const categories = ['flatrate', 'free', 'ads', 'rent', 'buy']
+  const providers = Object.fromEntries(
+    categories.map((category) => [
+      category,
+      (region?.[category] ?? [])
+        .map((provider) => ({
+          id: provider.provider_id,
+          name: provider.provider_name,
+          logoPath: provider.logo_path || null,
+          displayPriority: provider.display_priority ?? Number.MAX_SAFE_INTEGER,
+        }))
+        .sort((first, second) => first.displayPriority - second.displayPriority),
+    ]),
+  )
+
+  return {
+    link: safeTmdbWatchLink(region?.link),
+    ...providers,
+  }
+}
+
+function safeTmdbWatchLink(value) {
+  if (typeof value !== 'string') return null
+  try {
+    const url = new URL(value)
+    if (
+      url.protocol === 'https:' &&
+      (url.hostname === 'www.themoviedb.org' || url.hostname === 'themoviedb.org')
+    ) {
+      return url.href
+    }
+  } catch {
+    return null
+  }
+  return null
+}
+
+export function getWatchProviders(mediaType, tmdbId) {
+  if (!['movie', 'tv'].includes(mediaType) || !Number.isInteger(tmdbId) || tmdbId <= 0) {
+    return Promise.reject(new TmdbError('http', 'Tipo ou identificador inválido para provedores.'))
+  }
+
+  void loadImageConfig()
+  const key = `${mediaType}:${tmdbId}:${REGION}`
+  const hit = watchProviderCache.get(key)
+  if (hit && Date.now() - hit.time < CACHE_TTL_MS) return hit.promise
+
+  const path = `/${mediaType === 'movie' ? 'movie' : 'tv'}/${tmdbId}/watch/providers`
+  const promise = enqueueWatchProviderRequest(() => request(path, { region: REGION }))
+    .then(normalizeProviders)
+  watchProviderCache.set(key, { promise, time: Date.now() })
+  promise.catch(() => {
+    if (watchProviderCache.get(key)?.promise === promise) watchProviderCache.delete(key)
+  })
+  return promise
 }
 
 // ---------- Compatibilidade ----------
