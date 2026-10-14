@@ -2,11 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import Logo from './Logo.jsx'
 import Button from './Button.jsx'
 import { navLinks } from '../data/navigation.js'
-import { useSessionDialog } from '../context/sessionDialogContext.js'
 import { ROUTES } from '../utils/sessionFlow.js'
 
 export default function Navbar() {
-  const { openDialog } = useSessionDialog()
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const progressRef = useRef(null)
@@ -50,11 +48,6 @@ export default function Navbar() {
     return () => mediaQuery.removeEventListener('change', onChange)
   }, [])
 
-  const openJoinFromMenu = () => {
-    close()
-    openDialog('join')
-  }
-
   return (
     <header className={`navbar ${scrolled || open ? 'navbar--solid' : ''}`}>
       <div className="container navbar__inner">
@@ -71,9 +64,6 @@ export default function Navbar() {
         </nav>
 
         <div className="navbar__actions">
-          <button type="button" className="navbar__login" onClick={() => openDialog('join')}>
-            Entrar
-          </button>
           <Button size="sm" to={ROUTES.newSession}>
             Começar
           </Button>
@@ -107,9 +97,6 @@ export default function Navbar() {
         <div className="menu__actions">
           <Button size="lg" arrow to={ROUTES.newSession} onClick={close}>
             Começar uma sessão
-          </Button>
-          <Button variant="ghost" size="lg" onClick={openJoinFromMenu}>
-            Entrar com código
           </Button>
         </div>
       </div>

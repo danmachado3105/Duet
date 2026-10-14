@@ -1,12 +1,9 @@
 import Button from '../components/Button.jsx'
 import MatchCard from '../components/MatchCard.jsx'
 import Reveal from '../components/Reveal.jsx'
-import { useSessionDialog } from '../context/sessionDialogContext.js'
 import { ROUTES } from '../utils/sessionFlow.js'
 
 export default function Hero() {
-  const { openDialog } = useSessionDialog()
-
   return (
     <section className="hero">
       <div className="container hero__grid">
@@ -33,9 +30,6 @@ export default function Hero() {
           <Reveal delay={240} className="hero__actions">
             <Button size="lg" arrow to={ROUTES.newSession}>
               Começar uma sessão
-            </Button>
-            <Button variant="ghost" size="lg" onClick={() => openDialog('join')}>
-              Entrar com código
             </Button>
           </Reveal>
         </div>
