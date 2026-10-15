@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { catalog as demoCatalog } from '../data/catalog.js'
-import { fetchTitles, getGenres } from '../services/tmdb.js'
+import { fetchTitles, getGenres, getWatchProviderOptions } from '../services/tmdb.js'
 import { DEFAULT_SORT, listGenres, queryCatalog, sortTitles } from '../utils/catalog.js'
 import { buildGenreOptions } from '../utils/genres.js'
 import { useDebouncedValue } from './useDebouncedValue.js'
@@ -55,13 +55,18 @@ function reducer(state, action) {
 }
 
 // initialType: 'movie' | 'series' | 'animation' (vem da categoria escolhida na landing)
-export function useCatalog({ initialType } = {}) {
+export function useCatalog({ initialType, initialProviderIds = [] } = {}) {
   const [source, setSource] = useState('tmdb') // 'tmdb' | 'demo'
   const [query, setQuery] = useState('')
   const [type, setTypeState] = useState(initialType ?? 'all') // 'all' | 'movie' | 'series' | 'animation'
-  const [genreName, setGenreName] = useState(null)
+  const [genreNames, setGenreNames] = useState([])
+  const [providerIds, setProviderIds] = useState(initialProviderIds)
   const [sort, setSort] = useState(DEFAULT_SORT)
   const [genres, setGenres] = useState(null)
+  const [genreStatus, setGenreStatus] = useState('loading')
+  const [providerOptions, setProviderOptions] = useState([])
+  const [providerStatus, setProviderStatus] = useState('loading')
+  const [providerReloadKey, setProviderReloadKey] = useState(0)
   const [reloadKey, setReloadKey] = useState(0)
   const [state, dispatch] = useReducer(reducer, initialState)
   const requestId = useRef(0)
@@ -75,15 +80,41 @@ export function useCatalog({ initialType } = {}) {
     let active = true
     getGenres()
       .then((data) => {
-        if (active) setGenres(data)
+        if (active) {
+          setGenres(data)
+          setGenreStatus('success')
+        }
       })
       .catch(() => {
-        if (active) setGenres(null)
+        if (active) {
+          setGenres(null)
+          setGenreStatus('error')
+        }
       })
     return () => {
       active = false
     }
   }, [isDemo, reloadKey])
+
+  // A lista de provedores vem do catálogo agregado da TMDB, não de consultas por título.
+  useEffect(() => {
+    if (isDemo) return undefined
+
+    let active = true
+    getWatchProviderOptions()
+      .then((options) => {
+        if (active) {
+          setProviderOptions(options)
+          setProviderStatus('success')
+        }
+      })
+      .catch(() => {
+        if (active) setProviderStatus('error')
+      })
+    return () => {
+      active = false
+    }
+  }, [isDemo, providerReloadKey])
 
   const genreOptions = useMemo(() => {
     if (!isDemo) return buildGenreOptions(genres, type)
@@ -92,27 +123,20 @@ export function useCatalog({ initialType } = {}) {
       : DEMO_GENRES
   }, [isDemo, genres, type])
 
-  // Gênero selecionado, só se ele existir para a categoria atual
-  const selected = genreOptions.find((option) => option.name === genreName) ?? null
-  const selectedName = selected?.name ?? null
-  const idMovie = selected?.ids.movie ?? null
-  const idTv = selected?.ids.tv ?? null
-  const genreFilter = useMemo(
-    () => (selectedName ? { name: selectedName, ids: { movie: idMovie, tv: idTv } } : null),
-    [selectedName, idMovie, idTv],
+  const selectedGenres = useMemo(
+    () => genreOptions.filter((option) => genreNames.includes(option.name)),
+    [genreOptions, genreNames],
   )
 
   const setType = useCallback(
     (next) => {
       setTypeState(next)
-      // Mantém o gênero só se ele ainda existir na nova categoria
-      setGenreName((current) => {
-        if (!current) return current
-        if (isDemo) return next === 'animation' && current === 'Animação' ? null : current
-        return buildGenreOptions(genres, next).some((option) => option.name === current)
-          ? current
-          : null
-      })
+      const options = isDemo
+        ? next === 'animation'
+          ? DEMO_GENRES.filter((option) => option.name !== 'Animação')
+          : DEMO_GENRES
+        : buildGenreOptions(genres, next)
+      setGenreNames((current) => current.filter((name) => options.some((option) => option.name === name)))
     },
     [genres, isDemo],
   )
@@ -127,7 +151,8 @@ export function useCatalog({ initialType } = {}) {
         const result = await fetchTitles({
           query: searchTerm,
           type,
-          genre: genreFilter,
+          genre: selectedGenres,
+          providers: providerIds,
           sort,
           page,
         })
@@ -140,7 +165,7 @@ export function useCatalog({ initialType } = {}) {
         }
       }
     },
-    [searchTerm, type, genreFilter, sort],
+    [searchTerm, type, selectedGenres, providerIds, sort],
   )
 
   useEffect(() => {
@@ -156,29 +181,68 @@ export function useCatalog({ initialType } = {}) {
   const retry = useCallback(() => setReloadKey((key) => key + 1), [])
 
   const items = useMemo(() => {
-    if (isDemo) return queryCatalog(DEMO_TITLES, { query, type, genre: genreName, sort })
+    if (isDemo) return queryCatalog(DEMO_TITLES, { query, type, genre: genreNames, sort })
     // Na busca a TMDB não ordena: ordenamos tudo o que já foi carregado
     return searchTerm && sort !== DEFAULT_SORT ? sortTitles(state.items, sort) : state.items
-  }, [isDemo, query, type, genreName, sort, searchTerm, state.items])
+  }, [isDemo, query, type, genreNames, sort, searchTerm, state.items])
 
-  const hasFilters = query.trim() !== '' || type !== 'all' || selectedName !== null
+  const hasFilters =
+    query.trim() !== '' || type !== 'all' || genreNames.length > 0 || providerIds.length > 0
 
   const clear = useCallback(() => {
     setQuery('')
     setTypeState('all')
-    setGenreName(null)
+    setGenreNames([])
+    setProviderIds([])
   }, [])
+
+  const toggleGenre = useCallback((name) => {
+    setGenreNames((current) =>
+      current.includes(name) ? current.filter((item) => item !== name) : [...current, name],
+    )
+  }, [])
+
+  const switchSource = useCallback((nextSource) => {
+    setSource(nextSource)
+    if (nextSource === 'demo') {
+      setProviderIds([])
+    } else {
+      setProviderStatus('loading')
+    }
+  }, [])
+
+  const retryProviders = useCallback(() => {
+    setProviderStatus('loading')
+    setProviderReloadKey((key) => key + 1)
+  }, [])
+
+  const selectedProviderNames = providerIds.map(
+    (id) => providerOptions.find((provider) => provider.id === id)?.name ?? null,
+  )
+  const activeFilterCount =
+    Number(query.trim() !== '') +
+    Number(type !== 'all') +
+    genreNames.length +
+    providerIds.length
 
   return {
     source,
-    switchSource: setSource,
+    switchSource,
     query,
     setQuery,
     type,
     setType,
-    genre: selectedName,
-    setGenre: setGenreName,
+    genres: genreNames,
+    toggleGenre,
     genreOptions,
+    genreStatus,
+    providerIds,
+    setProviderIds,
+    providerOptions,
+    providerStatus: isDemo ? 'idle' : providerStatus,
+    retryProviders,
+    activeFilterCount,
+    selectedProviderNames,
     sort,
     setSort,
     status: isDemo ? 'success' : state.status,
@@ -192,6 +256,6 @@ export function useCatalog({ initialType } = {}) {
     hasFilters,
     clear,
     // Muda quando a categoria, o gênero ou a ordenação mudam: reinicia a animação de entrada da grade
-    viewKey: `${source}|${type}|${selectedName ?? ''}|${sort}`,
+    viewKey: `${source}|${type}|${genreNames.join(',')}|${providerIds.join(',')}|${sort}`,
   }
 }
