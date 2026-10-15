@@ -4,6 +4,8 @@ import { navLinks } from '../data/navigation.js'
 import { CATEGORIES, categoryRoute } from '../utils/categories.js'
 import { ROUTES } from '../utils/sessionFlow.js'
 
+const CURRENT_YEAR = new Date().getFullYear()
+
 export default function Footer() {
   return (
     <footer className="footer">
@@ -42,7 +44,7 @@ export default function Footer() {
 
         <div className="footer__bottom">
           <p>Projeto em desenvolvimento.</p>
-          <p>© {new Date().getFullYear()} DUET</p>
+          <p>© {CURRENT_YEAR} DUET</p>
         </div>
 
         <p className="footer__credit">
