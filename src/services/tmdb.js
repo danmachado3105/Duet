@@ -1,4 +1,4 @@
-import { DEFAULT_SORT, sortTitles } from '../utils/catalog.js'
+import { DEFAULT_SORT, normalize, sortTitles } from '../utils/catalog.js'
 
 // Camada única de acesso à TMDB. Nenhum componente faz fetch por conta própria.
 const API_BASE = 'https://api.themoviedb.org/3'
@@ -213,7 +213,7 @@ const SORT_BY = {
 
 const today = () => new Date().toISOString().slice(0, 10)
 
-function discoverParams(mediaType, sort, genreIds, page) {
+function discoverParams(mediaType, sort, genreIds, page, providerIds = []) {
   const isMovie = mediaType === 'movie'
   const params = {
     page,
@@ -221,6 +221,11 @@ function discoverParams(mediaType, sort, genreIds, page) {
     // Vírgula = "e": o título precisa ter todos os gêneros (ex.: Animação e Comédia)
     with_genres: genreIds.length ? genreIds.join(',') : undefined,
     sort_by: (SORT_BY[sort] ?? SORT_BY.relevance)[mediaType],
+  }
+  if (providerIds.length > 0) {
+    params.with_watch_providers = providerIds.join('|')
+    params.watch_region = REGION
+    params.with_watch_monetization_types = 'flatrate'
   }
   // Evita notas "10,0" de títulos com poucos votos e lançamentos que ainda não saíram
   if (sort === 'rating') params['vote_count.gte'] = isMovie ? 300 : 200
@@ -231,16 +236,16 @@ function discoverParams(mediaType, sort, genreIds, page) {
   return params
 }
 
-async function fetchPage({ mediaType, query, genreIds, sort, page }) {
+async function fetchPage({ mediaType, query, genreIds, providerIds, sort, page }) {
   let path
   let params
 
-  if (query) {
+  if (query && providerIds.length === 0) {
     path = `/search/${mediaType}`
     params = { query, page, include_adult: false }
-  } else if (genreIds.length > 0 || sort !== DEFAULT_SORT) {
+  } else if (genreIds.length > 0 || providerIds.length > 0 || sort !== DEFAULT_SORT) {
     path = `/discover/${mediaType}`
-    params = discoverParams(mediaType, sort, genreIds, page)
+    params = discoverParams(mediaType, sort, genreIds, page, providerIds)
   } else {
     path = `/${mediaType}/popular`
     params = { page }
@@ -248,8 +253,11 @@ async function fetchPage({ mediaType, query, genreIds, sort, page }) {
 
   const data = await request(path, params)
   let items = (data.results ?? []).map((raw) => normalizeTitle(raw, mediaType))
-  // A busca da TMDB não filtra por gênero: o filtro é aplicado em cada página recebida
-  if (query && genreIds.length > 0) {
+  // Busca e gênero são aplicados localmente quando a API de busca não aceita esses filtros.
+  if (query && providerIds.length > 0) {
+    const term = normalize(query)
+    items = items.filter((item) => normalize(item.title).includes(term))
+  } else if (query && genreIds.length > 0) {
     items = items.filter((item) => genreIds.every((id) => item.genreIds.includes(id)))
   }
 
@@ -279,24 +287,46 @@ function uniqueById(items) {
 // type: 'all' | 'movie' | 'series' | 'animation' · genre: { name, ids: { movie, tv } } | null
 // 'animation' = filmes e séries com o gênero Animação (o gênero escolhido, se houver, se soma a ele).
 // Retorna { items, hasMore }. Lança TmdbError.
-export async function fetchTitles({ query = '', type = 'all', genre = null, sort = DEFAULT_SORT, page = 1 }) {
+export async function fetchTitles({
+  query = '',
+  type = 'all',
+  genre = null,
+  providers = [],
+  sort = DEFAULT_SORT,
+  page = 1,
+}) {
   void loadImageConfig()
   await getGenres().catch(() => null) // sem nomes de gênero a lista ainda funciona
 
+  const selectedGenres = genre ? (Array.isArray(genre) ? genre : [genre]) : []
+  const providerIds = [...new Set(providers.filter((id) => Number.isInteger(id) && id > 0))]
   let mediaTypes = type === 'movie' ? ['movie'] : type === 'series' ? ['tv'] : ['movie', 'tv']
-  if (genre) mediaTypes = mediaTypes.filter((mediaType) => genre.ids[mediaType])
+  if (selectedGenres.length > 0) {
+    mediaTypes = mediaTypes.filter((mediaType) =>
+      selectedGenres.every((selected) => selected.ids?.[mediaType]),
+    )
+  }
   if (mediaTypes.length === 0) return { items: [], hasMore: false }
 
   const genreIdsFor = (mediaType) => {
     const ids = type === 'animation' ? [ANIMATION_GENRE_ID] : []
-    const chosen = genre?.ids?.[mediaType]
-    if (chosen && !ids.includes(chosen)) ids.push(chosen)
+    selectedGenres.forEach((selected) => {
+      const chosen = selected.ids?.[mediaType]
+      if (chosen && !ids.includes(chosen)) ids.push(chosen)
+    })
     return ids
   }
 
   const pages = await Promise.all(
     mediaTypes.map((mediaType) =>
-      fetchPage({ mediaType, query, genreIds: genreIdsFor(mediaType), sort, page }),
+      fetchPage({
+        mediaType,
+        query,
+        genreIds: genreIdsFor(mediaType),
+        providerIds,
+        sort,
+        page,
+      }),
     ),
   )
 
@@ -434,6 +464,37 @@ export function getWatchProviders(mediaType, tmdbId) {
     if (watchProviderCache.get(key)?.promise === promise) watchProviderCache.delete(key)
   })
   return promise
+}
+
+// Lista agregada da TMDB para o Brasil; não consulta disponibilidade por título.
+export async function getWatchProviderOptions() {
+  void loadImageConfig()
+  const [movies, series] = await Promise.all([
+    request('/watch/providers/movie', { watch_region: REGION }),
+    request('/watch/providers/tv', { watch_region: REGION }),
+  ])
+  const providers = new Map()
+
+  ;[...(movies.results ?? []), ...(series.results ?? [])].forEach((provider) => {
+    const current = providers.get(provider.provider_id)
+    const priority = provider.display_priority ?? Number.MAX_SAFE_INTEGER
+    if (!current) {
+      providers.set(provider.provider_id, {
+        id: provider.provider_id,
+        name: provider.provider_name,
+        logoPath: provider.logo_path || null,
+        displayPriority: priority,
+      })
+      return
+    }
+    if (!current.logoPath && provider.logo_path) current.logoPath = provider.logo_path
+    current.displayPriority = Math.min(current.displayPriority, priority)
+  })
+
+  return [...providers.values()].sort(
+    (first, second) =>
+      first.displayPriority - second.displayPriority || first.name.localeCompare(second.name, 'pt-BR'),
+  )
 }
 
 // ---------- Compatibilidade ----------
