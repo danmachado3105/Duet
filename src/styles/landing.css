@@ -1641,3 +1641,122 @@
 .diff {
   background: var(--ink-900);
 }
+
+@media (max-width: 560px) {
+  .hero {
+    padding-block: var(--space-2);
+  }
+
+  .hero__grid {
+    gap: var(--space-2);
+  }
+
+  .hero__title {
+    margin-top: var(--space-2);
+  }
+
+  .hero__lead {
+    margin-top: var(--space-2);
+  }
+
+  .hero__actions {
+    margin-top: var(--space-2);
+  }
+
+  .hero .demo {
+    gap: var(--space-3);
+  }
+
+  .hero .dpick {
+    padding-block: var(--space-2);
+  }
+
+  .hero .panel__note {
+    display: none;
+  }
+
+  .hero .demo__stage {
+    min-height: 170px;
+  }
+
+  .hero .demo__stage > .panel:not([data-active='true']) {
+    display: none;
+    grid-area: auto;
+  }
+
+  .hero .demo__stage > .panel[data-active='true'] {
+    grid-area: auto;
+  }
+
+  .hero .demo__play {
+    width: auto;
+  }
+
+  .hero .tabs {
+    gap: var(--space-1);
+  }
+
+  .hero .tab {
+    min-width: 36px;
+    height: 36px;
+    padding: 0;
+  }
+
+  .hero .tab__n {
+    width: 24px;
+    height: 24px;
+  }
+
+  .hero .tab[aria-current='step'] .tab__label {
+    display: none;
+  }
+
+  .hero .demo__play {
+    min-height: 36px;
+    padding-inline: var(--space-3);
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .hero {
+    padding-block: var(--space-1);
+  }
+
+  .hero__grid {
+    gap: var(--space-1);
+  }
+
+  .hero__title,
+  .hero__lead,
+  .hero__actions {
+    margin-top: var(--space-1);
+  }
+
+  .hero .demo__play-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 340px) {
+  .hero__title {
+    font-size: 2.75rem;
+  }
+
+  .hero__lead {
+    font-size: 1rem;
+  }
+
+  .hero .dpick__title {
+    font-size: 1.35rem;
+  }
+
+  .hero .dpick__meta {
+    display: none;
+  }
+}
