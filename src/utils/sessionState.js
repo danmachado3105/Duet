@@ -9,8 +9,8 @@ const HEX_COLOR = /^#[0-9a-f]{3,8}$/i
 
 // Cada pessoa tem uma LISTA de títulos. As listas nunca se misturam.
 export const initialSession = {
-  person1: { selections: [] },
-  person2: { selections: [] },
+  person1: { selections: [], providers: [] },
+  person2: { selections: [], providers: [] },
 }
 
 export const personKey = (person) => (person === 1 ? 'person1' : 'person2')
@@ -29,7 +29,15 @@ export const selectionKey = (session) =>
 export function sessionReducer(state, action) {
   switch (action.type) {
     case 'set':
-      return { ...state, [action.person]: { selections: action.selections } }
+      return {
+        ...state,
+        [action.person]: { ...state[action.person], selections: action.selections },
+      }
+    case 'set-providers':
+      return {
+        ...state,
+        [action.person]: { ...state[action.person], providers: action.providers },
+      }
     case 'reset':
       return initialSession
     default:
@@ -116,18 +124,39 @@ function parseSelections(list) {
 
 export function serializeSession(session) {
   return JSON.stringify({
-    person1: session.person1.selections.map(toSnapshot),
-    person2: session.person2.selections.map(toSnapshot),
+    person1: {
+      selections: session.person1.selections.map(toSnapshot),
+      providers: session.person1.providers,
+    },
+    person2: {
+      selections: session.person2.selections.map(toSnapshot),
+      providers: session.person2.providers,
+    },
   })
+}
+
+function parseProviders(list) {
+  if (!Array.isArray(list)) return []
+  return [...new Set(list.filter((id) => Number.isInteger(id) && id > 0))].slice(0, 100)
 }
 
 export function parseSession(raw) {
   try {
     const data = JSON.parse(raw)
-    const first = parseSelections(data?.person1)
+    const firstData = data?.person1
+    const secondData = data?.person2
+    const first = parseSelections(Array.isArray(firstData) ? firstData : firstData?.selections)
     // A Pessoa 2 só conta se a Pessoa 1 também escolheu
-    const second = first.length > 0 ? parseSelections(data?.person2) : []
-    return { person1: { selections: first }, person2: { selections: second } }
+    const second = first.length > 0
+      ? parseSelections(Array.isArray(secondData) ? secondData : secondData?.selections)
+      : []
+    return {
+      person1: { selections: first, providers: parseProviders(firstData?.providers) },
+      person2: {
+        selections: second,
+        providers: second.length > 0 ? parseProviders(secondData?.providers) : [],
+      },
+    }
   } catch {
     return initialSession
   }
