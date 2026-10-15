@@ -66,6 +66,10 @@ export default function MovieDetails({
       className="dialog details"
       aria-labelledby={titleId}
       onClose={onClose}
+      onCancel={(event) => {
+        event.preventDefault()
+        onClose()
+      }}
       {...backdrop}
     >
       {item && (
