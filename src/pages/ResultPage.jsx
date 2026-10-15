@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import Button from '../components/Button.jsx'
 import CatalogMessage from '../components/CatalogMessage.jsx'
 import CompatRule from '../components/CompatRule.jsx'
+import MatchReveal from '../components/MatchReveal.jsx'
 import MovieDetails from '../components/MovieDetails.jsx'
-import PosterImage from '../components/PosterImage.jsx'
 import PreferenceCard from '../components/PreferenceCard.jsx'
 import RecommendationCard from '../components/RecommendationCard.jsx'
 import { useCompatibility } from '../hooks/useCompatibility.js'
@@ -70,28 +70,43 @@ export default function ResultPage() {
 
   let title = (
     <>
-      Ainda não achamos o <em>meio-termo</em>.
+      Uma boa escolha ainda pode aparecer.
     </>
   )
-  let lead = 'Nenhuma opção encontrada combina com os gêneros das duas pessoas. Tentem escolher mais títulos ou outros gêneros.'
+  let lead = 'As escolhas não coincidiram desta vez. Vale rever a lista e tentar de novo.'
 
-  if (hasRecs) {
+  if (sharedTitles.length > 0) {
     title = (
       <>
-        Vocês dois vão <em>gostar</em> destes.
+        Vocês encontraram um <em>match</em>.
+      </>
+    )
+    lead = `${sharedTitles.length} ${sharedTitles.length === 1 ? 'título escolhido' : 'títulos escolhidos'} por vocês dois.`
+  } else if (hasRecs) {
+    title = (
+      <>
+        Um <em>meio-termo</em> para descobrir.
       </>
     )
     lead =
       situation === 'split'
-        ? 'As escolhas de vocês não têm gêneros em comum. Por isso combinamos um gênero de cada pessoa para achar o meio-termo.'
-        : `Cruzamos ${first.count} ${first.count === 1 ? 'escolha' : 'escolhas'} da Pessoa 1 com ${second.count} da Pessoa 2 e priorizamos o que agrada às duas.`
+        ? 'As escolhas não coincidiram desta vez e não têm gêneros em comum. Combinamos um gênero de cada pessoa para encontrar sugestões para os dois.'
+        : `As escolhas não coincidiram desta vez. Cruzamos ${first.count} ${first.count === 1 ? 'escolha' : 'escolhas'} da Pessoa 1 com ${second.count} da Pessoa 2 para encontrar sugestões que agradem às duas.`
   } else if (mode === 'picks-only') {
     title = (
       <>
         Comparamos as <em>escolhas</em>.
       </>
     )
-    lead = 'As sugestões usam a TMDB e não estão disponíveis com o catálogo de demonstração. Veja abaixo o que as escolhas têm em comum.'
+    lead = 'As sugestões usam a TMDB e não estão disponíveis com o catálogo de demonstração. Veja abaixo os gêneros das escolhas.'
+  } else if (!hasRecs) {
+    title = (
+      <>
+        Hoje, o catálogo não trouxe um <em>meio-termo</em>.
+      </>
+    )
+    lead =
+      'As escolhas não coincidiram desta vez e não encontramos sugestões próximas. Alterar as escolhas pode abrir novas possibilidades.'
   }
 
   return (
@@ -102,31 +117,16 @@ export default function ResultPage() {
         <p className="lead">{lead}</p>
       </header>
 
-      <div>
-        <h2 className="resp__h2">O que cada um prefere</h2>
-        <ul className="prefs">
-          <PreferenceCard person={first} tone="coral" />
-          <PreferenceCard person={second} tone="sand" />
-        </ul>
-      </div>
-
       <div className="together">
         <h2 className="resp__h2">O que vocês têm em comum</h2>
 
         {sharedTitles.length > 0 ? (
-          <div className="together__titles">
-            <p>Os dois escolheram:</p>
-            <ul className="together__posters">
-              {sharedTitles.map((item) => (
-                <li key={item.id}>
-                  <PosterImage movie={item} sizes="72px" />
-                  <span>{item.title}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <MatchReveal titles={sharedTitles} onOpen={setDetail} />
         ) : (
-          <p className="together__none">Vocês não escolheram os mesmos títulos.</p>
+          <p className="together__none">
+            Nenhum título apareceu nas duas listas. As sugestões abaixo podem revelar um novo
+            favorito para assistir juntos.
+          </p>
         )}
 
         {sharedGenres.length > 0 ? (
@@ -143,6 +143,14 @@ export default function ResultPage() {
         ) : (
           <p className="together__none">As escolhas de vocês não têm nenhum gênero em comum.</p>
         )}
+      </div>
+
+      <div>
+        <h2 className="resp__h2">O que cada um prefere</h2>
+        <ul className="prefs">
+          <PreferenceCard person={first} tone="coral" />
+          <PreferenceCard person={second} tone="sand" />
+        </ul>
       </div>
 
       {hasRecs ? (
