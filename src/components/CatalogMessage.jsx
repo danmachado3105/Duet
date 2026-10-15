@@ -3,7 +3,7 @@ import Button from './Button.jsx'
 const MESSAGES = {
   'missing-key': {
     title: 'Falta configurar a TMDB.',
-    text: 'Crie o arquivo .env.local na raiz do projeto com a linha VITE_TMDB_API_KEY=sua_chave, salve e reinicie o servidor (npm run dev).',
+    text: 'Copie .env.example para .env.local, preencha VITE_TMDB_API_KEY com sua chave da TMDB e reinicie o servidor (npm run dev).',
     config: true,
   },
   'invalid-key': {
