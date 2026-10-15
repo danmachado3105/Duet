@@ -20,8 +20,7 @@ export default function InAction() {
               <b>2</b>O cruzamento dos gostos
             </li>
             <li>
-              <b>3</b>
-              As recomendações (em breve)
+              <b>3</b> Sugestões para assistir juntos
             </li>
           </ol>
         </Reveal>
@@ -29,8 +28,7 @@ export default function InAction() {
         <Reveal delay={120}>
           <SessionMock />
           <p className="action__caption">
-            Prévia ilustrativa da futura tela. Recomendações e votação ainda estão em
-            desenvolvimento.
+            Prévia ilustrativa. As sugestões reais aparecem após a análise das escolhas de vocês.
           </p>
         </Reveal>
       </div>
