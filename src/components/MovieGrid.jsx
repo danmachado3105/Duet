@@ -1,10 +1,18 @@
+import { useState } from 'react'
 import Button from './Button.jsx'
 import CatalogMessage from './CatalogMessage.jsx'
 import MovieCard from './MovieCard.jsx'
 import MovieGridSkeleton from './MovieGridSkeleton.jsx'
 
+const PAGE_SIZE = 12
+
 export default function MovieGrid({ catalog, pickedIds, limitReached, onOpen, onToggle }) {
   const { status, error, items, query, hasFilters, hasMore, loadingMore, moreError } = catalog
+  const gridKey = `${catalog.viewKey}|${query}`
+  const [pageState, setPageState] = useState({ key: gridKey, count: PAGE_SIZE })
+  const visibleCount = pageState.key === gridKey ? pageState.count : PAGE_SIZE
+  const visibleItems = items.slice(0, visibleCount)
+  const canRevealMore = visibleCount < items.length
 
   if (status === 'loading') {
     return (
@@ -51,7 +59,7 @@ export default function MovieGrid({ catalog, pickedIds, limitReached, onOpen, on
         </div>
       ) : (
         <ul className="mgrid">
-          {items.map((movie, index) => (
+          {visibleItems.map((movie, index) => (
             <MovieCard
               key={movie.id}
               movie={movie}
@@ -65,11 +73,28 @@ export default function MovieGrid({ catalog, pickedIds, limitReached, onOpen, on
         </ul>
       )}
 
-      {hasMore && (
+      {(canRevealMore || hasMore) && (
         <div className="loadmore">
           {moreError && <p role="alert">Não foi possível carregar mais títulos.</p>}
-          <Button variant="ghost" size="lg" onClick={catalog.loadMore} disabled={loadingMore}>
-            {loadingMore ? 'Carregando...' : moreError ? 'Tentar novamente' : 'Carregar mais'}
+          <Button
+            variant="ghost"
+            size="lg"
+            onClick={() => {
+              if (canRevealMore) {
+                setPageState({ key: gridKey, count: visibleCount + PAGE_SIZE })
+              } else {
+                catalog.loadMore()
+              }
+            }}
+            disabled={loadingMore}
+          >
+            {loadingMore
+              ? 'Carregando...'
+              : canRevealMore
+                ? 'Ver mais títulos'
+                : moreError
+                  ? 'Tentar novamente'
+                  : 'Carregar mais'}
           </Button>
         </div>
       )}

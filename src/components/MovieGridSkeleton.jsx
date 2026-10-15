@@ -1,4 +1,4 @@
-export default function MovieGridSkeleton({ count = 12 }) {
+export default function MovieGridSkeleton({ count = 8 }) {
   return (
     <ul className="mgrid" aria-hidden="true">
       {Array.from({ length: count }, (_, index) => (
