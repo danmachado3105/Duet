@@ -171,17 +171,23 @@ export default function MatchCard() {
           ))}
         </div>
 
-        <button type="button" className="demo__play" onClick={play} disabled={playing}>
+        <button
+          type="button"
+          className="demo__play"
+          aria-label={playLabel}
+          onClick={play}
+          disabled={playing}
+        >
           <PlayIcon />
-          {playLabel}
+          <span className="demo__play-label">{playLabel}</span>
         </button>
       </div>
 
       <p className="demo__caption">
         {data.source === 'tmdb'
-          ? 'Exemplo ilustrativo com títulos reais da TMDB.'
-          : 'Exemplo ilustrativo.'}{' '}
-        Recomendações e match chegam em breve.
+          ? 'Demonstração ilustrativa com títulos reais da TMDB.'
+          : 'Demonstração ilustrativa.'}{' '}
+        Experimente as etapas do DUET.
       </p>
     </div>
   )
