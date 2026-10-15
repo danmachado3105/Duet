@@ -8,7 +8,12 @@ export default function MovieCard({ movie, selected, disabled, onOpen, onToggle,
   const year = movie.year ? `, ${movie.year}` : ''
 
   return (
-    <li className="mcard" data-selected={selected} style={{ '--i': Math.min(index, 11) }}>
+    <li
+      className="mcard"
+      data-selected={selected}
+      data-disabled={disabled && !selected}
+      style={{ '--i': Math.min(index, 11) }}
+    >
       <button
         type="button"
         className="mcard__btn"
@@ -31,9 +36,6 @@ export default function MovieCard({ movie, selected, disabled, onOpen, onToggle,
               </span>
             )}
           </span>
-          {movie.genres.length > 0 && (
-            <span className="mcard__genres">{movie.genres.slice(0, 2).join(' · ')}</span>
-          )}
         </span>
       </button>
 
@@ -44,6 +46,7 @@ export default function MovieCard({ movie, selected, disabled, onOpen, onToggle,
         aria-label={
           selected ? `Remover ${movie.title} da lista` : `Adicionar ${movie.title} à lista`
         }
+        title={disabled && !selected ? 'Limite de títulos atingido' : undefined}
         disabled={disabled && !selected}
         onClick={() => onToggle(movie)}
       >
