@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Button from '../components/Button.jsx'
 import PosterImage from '../components/PosterImage.jsx'
@@ -35,10 +35,21 @@ const COPY = {
   },
 }
 
+function uniquePicks(titles) {
+  const seen = new Set()
+  return titles
+    .filter((title) => {
+      if (seen.has(title.id)) return false
+      seen.add(title.id)
+      return true
+    })
+    .slice(0, MAX_PICKS)
+}
+
 export default function PickMoviePage({ person }) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { session, setSelections } = useSession()
+  const { session, setSelections, setProviderPreferences } = useSession()
   const copy = COPY[person]
 
   // Se a pessoa veio do resumo para alterar as escolhas, volta para ele ao salvar
@@ -49,9 +60,16 @@ export default function PickMoviePage({ person }) {
   const initialType = categoryFromSlug(new URLSearchParams(search).get('categoria'))?.id
 
   // `picks` = lista em edição desta pessoa. Só entra na sessão em `confirm`.
-  const [picks, setPicks] = useState(session[personKey(person)].selections)
+  const [picks, setPicks] = useState(() => uniquePicks(session[personKey(person)].selections))
   const [detail, setDetail] = useState(null)
-  const catalog = useCatalog({ initialType })
+  const catalog = useCatalog({
+    initialType,
+    initialProviderIds: session[personKey(person)].providers ?? [],
+  })
+
+  useEffect(() => {
+    setProviderPreferences(person, catalog.providerIds)
+  }, [catalog.providerIds, person, setProviderPreferences])
 
   const pickedIds = useMemo(() => new Set(picks.map((title) => title.id)), [picks])
   const limitReached = picks.length >= MAX_PICKS
@@ -86,7 +104,7 @@ export default function PickMoviePage({ person }) {
             {copy.who}
           </span>
           <h1 className="pick__title">{copy.title}</h1>
-          <p className="pick__sub">{copy.sub}</p>
+          <p className={`pick__sub${person === 1 ? ' pick__sub--single-line' : ''}`}>{copy.sub}</p>
           <p className="pick__hint">{copy.hint}</p>
         </header>
 
@@ -105,8 +123,23 @@ export default function PickMoviePage({ person }) {
             type={catalog.type}
             onTypeChange={catalog.setType}
             genres={catalog.genreOptions}
-            genre={catalog.genre}
-            onGenreChange={catalog.setGenre}
+            selectedGenres={catalog.genres}
+            onGenreToggle={catalog.toggleGenre}
+            genreStatus={catalog.genreStatus}
+            onRetryGenres={catalog.retry}
+            providers={catalog.providerOptions}
+            providerIds={catalog.providerIds}
+            onProviderToggle={(providerId) =>
+              catalog.setProviderIds((current) =>
+                current.includes(providerId)
+                  ? current.filter((id) => id !== providerId)
+                  : [...current, providerId],
+              )
+            }
+            providerStatus={catalog.providerStatus}
+            onRetryProviders={catalog.retryProviders}
+            activeCount={catalog.activeFilterCount}
+            onClear={catalog.clear}
           />
         </div>
 
@@ -116,8 +149,6 @@ export default function PickMoviePage({ person }) {
           hasMore={catalog.hasMore}
           sort={catalog.sort}
           onSortChange={catalog.setSort}
-          hasFilters={catalog.hasFilters}
-          onClear={catalog.clear}
         />
 
         <MovieGrid
@@ -142,11 +173,26 @@ export default function PickMoviePage({ person }) {
             <p className="tray__label" aria-live="polite">
               <span className="tray__who">{copy.who}</span>
               <span>
-                {picks.length === 0
-                  ? 'Nenhum título ainda'
-                  : `${picks.length} de ${MAX_PICKS} ${picks.length === 1 ? 'título' : 'títulos'}`}
+                {picks.length} de {MAX_PICKS} títulos escolhidos
+                {limitReached ? ' · limite atingido' : ` · faltam ${MAX_PICKS - picks.length}`}
               </span>
             </p>
+            <div
+              className="tray__progress"
+              role="progressbar"
+              aria-label={`Títulos escolhidos por ${copy.who}`}
+              aria-valuemin={0}
+              aria-valuemax={MAX_PICKS}
+              aria-valuenow={picks.length}
+              aria-valuetext={`${picks.length} de ${MAX_PICKS} títulos escolhidos`}
+            >
+              <span style={{ width: `${(picks.length / MAX_PICKS) * 100}%` }} />
+            </div>
+            {limitReached && (
+              <p className="tray__limit" role="status">
+                Remova um título da lista para escolher outro.
+              </p>
+            )}
 
             {picks.length > 0 ? (
               <ul className="tray__list">
@@ -167,7 +213,7 @@ export default function PickMoviePage({ person }) {
                 ))}
               </ul>
             ) : (
-              <p className="tray__hint">Toque no + de um título para adicioná-lo à sua lista.</p>
+              <p className="tray__hint">Use + em um título para adicioná-lo à sua lista.</p>
             )}
 
             {picks.length > 0 && picks.length < RECOMMENDED_PICKS && (
