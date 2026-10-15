@@ -88,10 +88,6 @@
 }
 
 /* ---------- Como funciona ---------- */
-.how {
-  border-top: 1px solid var(--line);
-}
-
 .how__head {
   display: grid;
   gap: var(--space-8);
@@ -1276,10 +1272,6 @@
 }
 
 /* ---------- Explore o catálogo ---------- */
-.explore {
-  border-block: 1px solid var(--line);
-}
-
 .cats {
   display: grid;
   grid-template-columns: 1fr;
@@ -1431,10 +1423,6 @@
 }
 
 /* ---------- Diferenciais ---------- */
-.diff {
-  border-block: 1px solid var(--line);
-}
-
 .crit__n {
   display: block;
   margin-bottom: var(--space-4);
@@ -1506,4 +1494,150 @@
     grid-template-columns: 1fr auto auto;
     gap: var(--space-16);
   }
+}
+
+/* Refinamento editorial da vitrine */
+.hero {
+  padding-top: clamp(var(--space-12), 8vw, var(--space-24));
+}
+
+.hero__copy {
+  max-width: 39rem;
+}
+
+.hero__lead {
+  max-width: 31rem;
+}
+
+.hero__actions .btn {
+  min-height: 54px;
+}
+
+.demo {
+  padding: var(--space-4) 0;
+  border: 0;
+  border-block: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.dpick {
+  padding-inline: 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+}
+
+.dpick:hover {
+  background: transparent;
+  transform: none;
+}
+
+.dpick:hover .poster {
+  transform: translateY(-2px);
+}
+
+.result {
+  padding: var(--space-3) 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.tags li {
+  padding-inline: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.cat {
+  padding: var(--space-4) 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.cat:focus-visible,
+.cat:hover {
+  border-color: var(--accent);
+  background: transparent;
+  box-shadow: none;
+}
+
+.crit__in:hover .crit__top b {
+  color: var(--accent);
+}
+
+.app {
+  border: 0;
+  border-block: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.app__cross {
+  padding-inline: 0;
+  border-block: 1px solid var(--line);
+  background: transparent;
+}
+
+.app__tag {
+  top: var(--space-2);
+  right: 0;
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  font-size: 0.7rem;
+}
+
+.rec {
+  padding-inline: 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+}
+
+.rec:hover,
+.rec--top {
+  border-color: var(--line-strong);
+  background: transparent;
+  transform: none;
+}
+
+@media (min-width: 960px) {
+  .hero__grid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(420px, 0.95fr);
+  }
+
+  .cats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-8);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo {
+    transform: none;
+  }
+}
+
+/* Hero preenche a área visível abaixo da navegação; as próximas seções vêm no scroll. */
+.hero {
+  display: grid;
+  align-items: center;
+  min-height: calc(100vh - var(--nav-h));
+  min-height: calc(100svh - var(--nav-h));
+  padding-block: clamp(var(--space-8), 7vh, var(--space-16));
+}
+
+/* Cinza escuro reservado apenas ao catálogo e aos diferenciais. */
+.explore,
+.diff {
+  background: var(--ink-900);
 }
